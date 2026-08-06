@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.18); --accent-hot: #f97316;
+    --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+    --green:#4ade80; --amber:#fbbf24; --red:#f87171;
+  }
+  html { font-size: 16px; }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: repeating-linear-gradient(88deg, transparent, transparent 60px, rgba(56,189,248,0.018) 60px, rgba(56,189,248,0.018) 61px);
+    pointer-events: none; z-index: 0;
+  }
+  .page { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 0 0 40px; min-height: 100vh; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; text-decoration: none; color: var(--text-primary); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+
+  .content { padding: 20px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+
+  .session-card { background: linear-gradient(135deg, #16283a, #182f42); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; }
+  .session-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .session-sub { font-size: 12.5px; color: var(--text-muted); font-weight: 300; margin-bottom: 10px; }
+  .spots-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: rgba(251,191,36,0.14); color: var(--amber); }
+
+  .role-toggle { display: flex; background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 4px; margin-bottom: 24px; }
+  .role-btn { flex: 1; text-align: center; padding: 10px 0; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); font-family: var(--font-body); }
+  .role-btn.active { background: var(--accent); color: var(--rink-dark); }
+  .role-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .radio-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--border-mid); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; background: var(--rink-panel); }
+  .radio-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .radio-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-mid); flex-shrink: 0; position: relative; }
+  .radio-row.selected .radio-dot { border-color: var(--accent); }
+  .radio-row.selected .radio-dot::after { content:''; position:absolute; inset:3px; border-radius:50%; background: var(--accent); }
+  .radio-label { font-size: 13.5px; font-weight: 500; }
+
+  .price-box { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; }
+  .price-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; margin-bottom: 10px; }
+  .price-row .label { color: var(--text-primary); }
+  .price-note { font-size: 10.5px; color: var(--text-dim); margin-top: -6px; margin-bottom: 10px; }
+  .price-divider { height: 1px; background: var(--border-mid); margin: 12px 0; }
+  .price-total { display: flex; justify-content: space-between; font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+  .goalie-banner { display: none; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: var(--green); }
+  .goalie-banner.show { display: block; }
+
+  .payment-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--border-mid); border-radius: var(--radius-sm); margin-bottom: 20px; background: var(--rink-panel); }
+  .payment-info { display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+  .change-link { font-size: 12px; color: var(--text-muted); font-weight: 600; background: none; border: none; cursor: pointer; font-family: var(--font-body); }
+  .change-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .policy-box { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 24px; display: flex; gap: 10px; }
+  .policy-box p { font-size: 11.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; }
+
+  .pay-btn { width: 100%; padding: 16px; border-radius: var(--radius-sm); background: var(--text-primary); color: var(--rink-dark); border: none; font-family: var(--font-body); font-weight: 700; font-size: 15px; cursor: pointer; }
+  .pay-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .pay-btn.free { background: var(--green); }
+
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; max-width: 90%; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-explore.html" aria-label="Back to Explore">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1>Checkout</h1>
+  </div>
+
+  <div class="content">
+
+    <div class="session-card">
+      <div class="session-title">Stick &amp; Puck</div>
+      <div class="session-sub">Apex Ice Arena · Fri, Aug 14 · 9:00–10:30 PM</div>
+      <span class="spots-pill" id="spots-pill">6 spots left</span>
+    </div>
+
+    <p class="section-label">I'm registering as</p>
+    <div class="role-toggle">
+      <button class="role-btn active" id="role-skater">Skater</button>
+      <button class="role-btn" id="role-goalie">Goalie</button>
+    </div>
+
+    <p class="section-label">Who's going</p>
+    <div class="radio-row selected" tabindex="0" role="radio" aria-checked="true">
+      <div class="radio-dot"></div>
+      <div class="radio-label">Yourself</div>
+    </div>
+    <div class="radio-row" tabindex="0" role="radio" aria-checked="false" style="margin-bottom:24px">
+      <div class="radio-dot"></div>
+      <div class="radio-label" style="color:var(--text-muted)">+ Add a dependent</div>
+    </div>
+
+    <p class="section-label">Price</p>
+    <div class="price-box">
+      <div class="goalie-banner" id="goalie-banner">
+        ✓ Goalies play free — this fee is automatically waived, no code needed.
+      </div>
+      <div class="price-row"><span class="label">Session price</span><span id="price-session">$12.00</span></div>
+      <div class="price-row" style="margin-bottom:0"><span class="label">Convenience fee</span><span id="price-fee">$0.99</span></div>
+      <p class="price-note" id="fee-note">Non-refundable — covers payment processing</p>
+      <div class="price-divider"></div>
+      <div class="price-total"><span>Total</span><span id="price-total">$12.99</span></div>
+    </div>
+
+    <p class="section-label">Payment</p>
+    <div class="payment-row">
+      <div class="payment-info">•••• •••• •••• 4242</div>
+      <button class="change-link">Change</button>
+    </div>
+
+    <div class="policy-box">
+      <span style="flex-shrink:0">ⓘ</span>
+      <p>Free to cancel anytime. You're refunded right away if this session is full when you cancel — if it fills up later, you're refunded automatically then. If it never fills, the session price isn't refunded. The $0.99 fee is never refunded, and doesn't apply to goalie registrations.</p>
+    </div>
+
+    <button class="pay-btn" id="pay-btn" onclick="showToast('✓ Booking confirmed — see you Friday!')">Pay $12.99 &amp; Book</button>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  const roleSkater = document.getElementById('role-skater');
+  const roleGoalie = document.getElementById('role-goalie');
+  const goalieBanner = document.getElementById('goalie-banner');
+  const priceSession = document.getElementById('price-session');
+  const priceFee = document.getElementById('price-fee');
+  const priceTotal = document.getElementById('price-total');
+  const feeNote = document.getElementById('fee-note');
+  const payBtn = document.getElementById('pay-btn');
+  const spotsPill = document.getElementById('spots-pill');
+
+  function setRole(role) {
+    const isGoalie = role === 'goalie';
+    roleSkater.classList.toggle('active', !isGoalie);
+    roleGoalie.classList.toggle('active', isGoalie);
+    goalieBanner.classList.toggle('show', isGoalie);
+
+    if (isGoalie) {
+      priceSession.textContent = '$0.00';
+      priceFee.textContent = '$0.00';
+      priceTotal.textContent = '$0.00';
+      feeNote.textContent = 'Goalies are never charged a convenience fee';
+      payBtn.textContent = 'Register — Free';
+      payBtn.classList.add('free');
+      spotsPill.textContent = '2 of 4 goalie spots open';
+      spotsPill.style.background = 'rgba(74,222,128,0.14)';
+      spotsPill.style.color = 'var(--green)';
+    } else {
+      priceSession.textContent = '$12.00';
+      priceFee.textContent = '$0.99';
+      priceTotal.textContent = '$12.99';
+      feeNote.textContent = 'Non-refundable — covers payment processing';
+      payBtn.textContent = 'Pay $12.99 & Book';
+      payBtn.classList.remove('free');
+      spotsPill.textContent = '6 spots left';
+      spotsPill.style.background = 'rgba(251,191,36,0.14)';
+      spotsPill.style.color = 'var(--amber)';
+    }
+  }
+
+  roleSkater.addEventListener('click', () => setRole('skater'));
+  roleGoalie.addEventListener('click', () => setRole('goalie'));
+
+  document.querySelectorAll('.radio-row').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.radio-row').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
+      row.classList.add('selected');
+      row.setAttribute('aria-checked','true');
+    });
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); } });
+  });
+
+  // Arrive pre-set to Goalie if linked from Session Detail's "Register as Goalie" CTA
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('role') === 'goalie') setRole('goalie');
+</script>
+</body>
+</html>

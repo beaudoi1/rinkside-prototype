@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Create Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-panel: #182f42;
+    --accent: #38bdf8; --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius-sm: 10px; --red: #f87171;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+  .content { padding: 24px 20px; }
+
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-label { font-size: 11px; color: var(--text-dim); font-weight: 600; margin-bottom: 6px; }
+
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .chip { padding: 11px 16px; border-radius: 999px; border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; }
+  .chip.selected { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); font-weight: 700; }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .step2-note { font-size: 12px; color: var(--text-muted); font-weight: 300; margin-bottom: 20px; line-height: 1.5; }
+  .skip-link { display: block; text-align: center; font-size: 12.5px; color: var(--text-muted); font-weight: 600; margin-top: 16px; background: none; border: none; cursor: pointer; font-family: var(--font-body); width: 100%; }
+  .skip-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .field input { width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; }
+  .field input::placeholder { color: var(--text-dim); }
+  .field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .field-error { font-size: 11px; color: var(--red); margin-top: 6px; display: none; }
+  .field.invalid input { border-color: var(--red); }
+  .field.invalid .field-error { display: block; }
+
+  .pw-row { position: relative; }
+  .pw-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+  .pw-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .submit-btn { width: 100%; padding: 16px; border-radius: var(--radius-sm); background: var(--text-primary); color: var(--rink-dark); border: none; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 8px; }
+  .submit-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .terms { font-size: 10.5px; color: var(--text-dim); text-align: center; margin-top: 18px; line-height: 1.5; }
+  .login-link { font-size: 12px; color: var(--text-muted); font-weight: 500; text-align: center; margin-top: 24px; }
+  .login-link a { color: var(--accent); font-weight: 700; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-welcome.html" aria-label="Back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <h1>Create Account</h1>
+  </div>
+
+  <div class="content">
+    <div class="step active" id="step1">
+      <form onsubmit="return handleStep1(event)">
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" placeholder="Jordan Rivera" required>
+        </div>
+        <div class="field" id="email-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@email.com" required>
+          <p class="field-error">Enter a valid email address</p>
+        </div>
+        <div class="field pw-row">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" required minlength="8">
+          <button type="button" class="pw-toggle" onclick="togglePw()">Show</button>
+        </div>
+        <button type="submit" class="submit-btn">Continue</button>
+      </form>
+      <p class="terms">By creating an account you agree to our Terms and Privacy Policy</p>
+      <p class="login-link">Already have an account? <a href="rinkside-login.html">Log in</a></p>
+    </div>
+
+    <div class="step" id="step2">
+      <p class="step2-note">One more thing — this helps us show you accurate pricing and availability right away, including automatically waiving your fee if you play goalie. Skip if you'd rather set this up later.</p>
+
+      <p class="step-label">SKILL LEVEL</p>
+      <div class="chip-grid" id="skill-chips">
+        <button type="button" class="chip">Beginner</button>
+        <button type="button" class="chip">Intermediate</button>
+        <button type="button" class="chip">Advanced</button>
+        <button type="button" class="chip">Expert</button>
+      </div>
+
+      <p class="step-label">PREFERRED POSITION</p>
+      <div class="chip-grid" id="position-chips">
+        <button type="button" class="chip">Centre</button>
+        <button type="button" class="chip">Wing</button>
+        <button type="button" class="chip">Defense</button>
+        <button type="button" class="chip">Goalie</button>
+      </div>
+
+      <button type="button" class="submit-btn" onclick="finishSignup()">Save &amp; Continue</button>
+      <button type="button" class="skip-link" onclick="finishSignup()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePw() {
+    const pw = document.getElementById('password');
+    const btn = document.querySelector('.pw-toggle');
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    btn.textContent = show ? 'Hide' : 'Show';
+  }
+
+  function handleStep1(e) {
+    e.preventDefault();
+    const email = document.getElementById('email');
+    const emailField = document.getElementById('email-field');
+    const valid = /\S+@\S+\.\S+/.test(email.value);
+    emailField.classList.toggle('invalid', !valid);
+    if (valid) {
+      document.getElementById('step1').classList.remove('active');
+      document.getElementById('step2').classList.add('active');
+      document.querySelector('.topbar h1').textContent = 'Quick Preferences';
+    }
+    return false;
+  }
+
+  document.querySelectorAll('#skill-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#skill-chips .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('#position-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#position-chips .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+  });
+
+  function finishSignup() {
+    window.location.href = 'rinkside-home.html';
+  }
+</script>
+</body>
+</html>

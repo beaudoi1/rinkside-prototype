@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.18); --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  body::before {
+    content:''; position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px; background: radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .page { max-width: 420px; width: 100%; padding: 60px 24px 40px; text-align: center; }
+  .logo { font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .logo span { color: var(--accent); }
+  .tagline { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 32px; }
+
+  .hero { height: 180px; border-radius: var(--radius); margin-bottom: 32px; background: linear-gradient(135deg, #16283a, #1b3550); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+  .hero::after { content: '⛸️'; font-size: 56px; opacity: 0.5; }
+
+  .btn { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); font-family: var(--font-body); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: none; margin-bottom: 12px; text-align: center; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn-outline { background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); }
+  .btn-outline:hover { border-color: var(--accent); }
+  .btn-primary { background: var(--text-primary); color: var(--rink-dark); border: none; font-weight: 700; font-size: 14px; }
+  .btn-skip { background: none; border: 1.5px solid var(--text-primary); color: var(--text-primary); font-weight: 700; font-size: 14px; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border-mid); }
+  .divider span { font-size: 11px; color: var(--text-dim); }
+
+  .login-link { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 20px; }
+  .login-link a { color: var(--accent); font-weight: 700; text-decoration: none; }
+  .login-link a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .terms { font-size: 10.5px; color: var(--text-dim); margin-top: 28px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="logo">Rink<span>side</span></div>
+  <p class="tagline">Real-time ice, real fast.</p>
+
+  <div class="hero" aria-hidden="true"></div>
+
+  <a class="btn btn-outline" href="#" onclick="return false" aria-disabled="true">Continue with Google</a>
+  <a class="btn btn-outline" href="#" onclick="return false" aria-disabled="true">Continue with Apple</a>
+  <a class="btn btn-outline" href="#" onclick="return false" aria-disabled="true">Continue with Facebook</a>
+
+  <div class="divider"><span>or</span></div>
+
+  <a class="btn btn-primary" href="rinkside-signup.html">Sign up with email</a>
+  <a class="btn btn-skip" href="rinkside-home.html">Skip — just browse</a>
+
+  <p class="login-link">Already have an account? <a href="rinkside-login.html">Log in</a></p>
+
+  <p class="terms">By continuing you agree to our Terms and Privacy Policy</p>
+</div>
+</body>
+</html>

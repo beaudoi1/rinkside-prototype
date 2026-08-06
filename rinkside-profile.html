@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.18);
+    --accent-purple: #a78bfa; --accent-purple-glow: rgba(167,139,250,0.15);
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+  }
+  html { font-size: 16px; }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(88deg, transparent, transparent 60px, rgba(56,189,248,0.018) 60px, rgba(56,189,248,0.018) 61px),
+      repeating-linear-gradient(2deg, transparent, transparent 120px, rgba(56,189,248,0.012) 120px, rgba(56,189,248,0.012) 121px);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-top { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .glow-bottom { position: fixed; bottom: -60px; right: -80px; width: 400px; height: 300px; background: radial-gradient(ellipse, rgba(249,115,22,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .page { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 0 0 100px; min-height: 100vh; }
+
+  /* ── TOP NAV ── */
+  .topnav { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0; }
+  .logo { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.5px; color: var(--text-primary); }
+  .logo span { color: var(--accent); }
+
+  /* ── BACK ── */
+
+  /* ── PROFILE HERO ── */
+  .profile-hero { margin: 18px 20px 24px; background: linear-gradient(135deg, #0e2a3e, #16384f); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 24px 20px; text-align: center; position: relative; overflow: hidden; animation: fadeUp 0.4s 0.05s ease both; }
+  .profile-hero::after { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(56,189,248,0.08), transparent 70%); pointer-events: none; }
+  .profile-avatar-wrap { position: relative; display: inline-block; margin-bottom: 14px; }
+  .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: rgba(56,189,248,0.12); border: 2px solid var(--border-mid); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--accent); margin: 0 auto; }
+  .profile-edit-btn { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: 2px solid var(--rink-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s; }
+  .profile-edit-btn:hover { transform: scale(1.1); }
+  .profile-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 3px; }
+  .profile-handle { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 16px; }
+  .profile-stats { display: flex; justify-content: center; }
+  .profile-stat { flex: 1; padding: 10px 8px; border-right: 1px solid var(--border); }
+  .profile-stat:last-child { border-right: none; }
+  .profile-stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+  .profile-stat-label { font-size: 10px; color: var(--text-muted); font-weight: 300; margin-top: 2px; }
+
+  /* ── SECTION LABEL ── */
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); padding: 0 20px; margin-bottom: 10px; }
+
+  /* ── ACHIEVEMENTS ── */
+  .achievements-scroll { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; margin-bottom: 28px; animation: fadeUp 0.4s 0.1s ease both; }
+  .achievements-scroll::-webkit-scrollbar { display: none; }
+  .achievement-chip { flex-shrink: 0; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 12px; min-width: 100px; text-align: center; cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+  .achievement-chip:hover { border-color: var(--border-mid); transform: translateY(-2px); }
+  .achievement-chip.earned { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
+  .achievement-chip.locked { opacity: 0.4; filter: grayscale(1); }
+  .achievement-emoji { font-size: 26px; display: block; margin-bottom: 6px; }
+  .achievement-name { font-size: 11px; font-weight: 500; }
+  .achievement-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ── ACCORDION LIST ── */
+  .accordion-list { margin: 0 20px 16px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); animation: fadeUp 0.4s 0.15s ease both; }
+
+  /* Parent row — the clickable header */
+  .accordion-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 16px;
+    background: var(--rink-panel);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.12s;
+    user-select: none;
+  }
+  .accordion-row:last-child { border-bottom: none; }
+  .accordion-row:hover { background: rgba(255,255,255,0.04); }
+  .accordion-row.open { background: rgba(56,189,248,0.05); border-bottom-color: var(--border); }
+  .accordion-row-left { display: flex; align-items: center; gap: 12px; }
+  .accordion-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-blue   { background: rgba(56,189,248,0.1);     color: var(--accent);         border: 1px solid rgba(56,189,248,0.2); }
+  .ai-orange { background: rgba(249,115,22,0.1);     color: #fb923c;               border: 1px solid rgba(249,115,22,0.2); }
+  .ai-green  { background: rgba(74,222,128,0.1);     color: #4ade80;               border: 1px solid rgba(74,222,128,0.2); }
+  .ai-purple { background: var(--accent-purple-glow); color: var(--accent-purple); border: 1px solid rgba(167,139,250,0.2); }
+
+  /* Radio option rows (single-select) */
+  .option-group { padding: 10px 16px 10px 62px; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .option-group:last-child { border-bottom: none; }
+  .option-label-row { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .radio-option { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: background 0.12s; border-radius: 6px; }
+  .radio-option:last-child { border-bottom: none; }
+  .radio-option:hover .radio-label { color: var(--text-primary); }
+  .radio-label { font-size: 13px; color: var(--text-muted); transition: color 0.12s; }
+  .radio-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-mid); display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; flex-shrink: 0; }
+  .radio-dot.selected { border-color: var(--accent); background: var(--accent); }
+  .radio-dot.selected::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--rink-dark); }
+
+  /* Multi-select pill grid */
+  .pill-group { padding: 12px 16px 12px 62px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .pill-group:last-child { border-bottom: none; }
+  .pill-group-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+  .pill-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .multi-pill { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-mid); font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; background: transparent; font-family: var(--font-body); }
+  .multi-pill:hover { border-color: var(--accent); color: var(--text-primary); }
+  .multi-pill.selected { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: var(--accent); }
+
+  /* Kids profile sub-rows */
+  .kids-panel-inner { padding: 12px 16px 12px 62px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .kids-panel-inner:last-child { border-bottom: none; }
+  .kid-card { background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border-color 0.15s; }
+  .kid-card:last-child { margin-bottom: 0; }
+  .kid-card:hover { border-color: var(--border-mid); }
+  .kid-card-left { display: flex; align-items: center; gap: 10px; }
+  .kid-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-purple-glow); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--accent-purple); }
+  .kid-name { font-size: 13px; font-weight: 500; }
+  .kid-age  { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+  .add-kid-btn { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--accent); background: none; border: 1px dashed rgba(56,189,248,0.25); border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s, background 0.15s; width: 100%; justify-content: center; }
+  .add-kid-btn:hover { border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.04); }
+  .accordion-label { font-size: 14px; font-weight: 500; }
+  .accordion-sub   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .accordion-chevron { color: var(--text-dim); transition: transform 0.22s ease; flex-shrink: 0; }
+  .accordion-row.open .accordion-chevron { transform: rotate(90deg); }
+
+  /* Sub-items panel */
+  .accordion-panel {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.28s ease;
+    background: rgba(0,0,0,0.18);
+    border-bottom: 1px solid var(--border);
+  }
+  .accordion-panel:last-child { border-bottom: none; }
+  .accordion-panel.open { max-height: 600px; }
+
+  .sub-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px 12px 62px; /* indent to align with label */
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer; transition: background 0.12s;
+  }
+  .sub-row:last-child { border-bottom: none; }
+  .sub-row:hover { background: rgba(255,255,255,0.04); }
+  .sub-row-label { font-size: 13px; color: var(--text-muted); }
+  .sub-row-value { font-size: 12px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
+  .sub-chevron { color: var(--text-dim); }
+
+  /* ── SIGN OUT ── */
+  .signout-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 20px 0; padding: 14px; border-radius: var(--radius); background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); color: #f87171; font-family: var(--font-body); font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; width: calc(100% - 40px); animation: fadeUp 0.4s 0.2s ease both; }
+  .signout-btn:hover { background: rgba(248,113,113,0.15); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: rgba(11,24,36,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding: 10px 0 20px; display: flex; z-index: 100; }
+  .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 0; transition: opacity 0.15s; }
+  .nav-item:hover { opacity: 0.8; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 9px; font-weight: 400; }
+  .nav-item.active svg { stroke: var(--accent); }
+  .nav-item.active span { color: var(--accent); font-weight: 500; }
+  .nav-item:not(.active) svg { stroke: var(--text-dim); }
+  .nav-item:not(.active) span { color: var(--text-dim); }
+  .nav-item { text-decoration: none; }
+  .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-primary); white-space: nowrap; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="glow-top"></div>
+<div class="glow-bottom"></div>
+<div class="page">
+
+  <nav class="topnav">
+    <div class="logo">Rink<span>side</span></div>
+    <div style="width:38px"></div>
+  </nav>
+
+    </button>
+
+  <!-- Profile hero -->
+  <div class="profile-hero">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar">JR</div>
+      <div class="profile-edit-btn" id="edit-avatar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+    </div>
+    <div class="profile-name">Jordan Rivera</div>
+    <div class="profile-handle">@jordanr · Parker, CO</div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="profile-stat-val">47</div><div class="profile-stat-label">Sessions</div></div>
+      <div class="profile-stat"><div class="profile-stat-val">2</div><div class="profile-stat-label">Teams</div></div>
+      <div class="profile-stat"><div class="profile-stat-val">4</div><div class="profile-stat-label">Saved rinks</div></div>
+      <div class="profile-stat"><div class="profile-stat-val">3yr</div><div class="profile-stat-label">Member</div></div>
+    </div>
+  </div>
+
+  <!-- Achievements -->
+  <p class="section-label">Achievements</p>
+  <div class="achievements-scroll">
+    <div class="achievement-chip earned" tabindex="0"><span class="achievement-emoji">🏒</span><div class="achievement-name">First Goal</div><div class="achievement-sub">Earned</div></div>
+    <div class="achievement-chip earned" tabindex="0"><span class="achievement-emoji">⛸️</span><div class="achievement-name">10 Sessions</div><div class="achievement-sub">Earned</div></div>
+    <div class="achievement-chip earned" tabindex="0"><span class="achievement-emoji">🌟</span><div class="achievement-name">Team Player</div><div class="achievement-sub">Earned</div></div>
+    <div class="achievement-chip locked" tabindex="0"><span class="achievement-emoji">🏆</span><div class="achievement-name">Champion</div><div class="achievement-sub">Win a league</div></div>
+    <div class="achievement-chip locked" tabindex="0"><span class="achievement-emoji">💯</span><div class="achievement-name">Century</div><div class="achievement-sub">100 sessions</div></div>
+    <div class="achievement-chip locked" tabindex="0"><span class="achievement-emoji">🔥</span><div class="achievement-name">Hot Streak</div><div class="achievement-sub">10 in a row</div></div>
+  </div>
+
+  <!-- Settings section label -->
+  <p class="section-label">Settings</p>
+
+  <!-- Accordion list -->
+  <div class="accordion-list">
+
+    <!-- Profile Information -->
+    <div class="accordion-row" id="hdr-profile" tabindex="0" aria-expanded="false">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-blue">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Profile information</div>
+          <div class="accordion-sub">Name, address, email, phone</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-profile">
+      <div class="sub-row" tabindex="0" data-toast="✏️ Editing full name…">
+        <span class="sub-row-label">Full name</span>
+        <span class="sub-row-value">Jordan Rivera <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="sub-row" tabindex="0" data-toast="✏️ Editing address…">
+        <span class="sub-row-label">Address</span>
+        <span class="sub-row-value">Parker, CO 80134 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="sub-row" tabindex="0" data-toast="✏️ Editing email…">
+        <span class="sub-row-label">Email</span>
+        <span class="sub-row-value">jordan.r@email.com <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="sub-row" tabindex="0" data-toast="✏️ Editing phone number…">
+        <span class="sub-row-label">Phone number</span>
+        <span class="sub-row-value">+1 (720) 555-0194 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+    </div>
+
+    <!-- Account Information -->
+    <div class="accordion-row" id="hdr-account" tabindex="0" aria-expanded="false">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-orange">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Account information</div>
+          <div class="accordion-sub">Password, subscription</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-account">
+      <div class="sub-row" tabindex="0" data-toast="🔒 Changing password…">
+        <span class="sub-row-label">Password</span>
+        <span class="sub-row-value">Change <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="sub-row" tabindex="0" data-toast="⭐ Managing subscription…">
+        <span class="sub-row-label">Manage subscription</span>
+        <span class="sub-row-value">Rinkside Pro <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+    </div>
+
+    <!-- Skill Level -->
+    <div class="accordion-row" id="hdr-skill" tabindex="0" aria-expanded="false">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-orange">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Skill level</div>
+          <div class="accordion-sub" id="skill-sub">Intermediate</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-skill">
+      <div class="option-group">
+        <div class="radio-option" data-value="Beginner" tabindex="0">
+          <span class="radio-label">Beginner</span>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="radio-option" data-value="Intermediate" tabindex="0">
+          <span class="radio-label">Intermediate</span>
+          <div class="radio-dot selected"></div>
+        </div>
+        <div class="radio-option" data-value="Advanced" tabindex="0">
+          <span class="radio-label">Advanced</span>
+          <div class="radio-dot"></div>
+        </div>
+        <div class="radio-option" data-value="Expert" tabindex="0">
+          <span class="radio-label">Expert</span>
+          <div class="radio-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferred Position -->
+    <div class="accordion-row" id="hdr-position" tabindex="0" aria-expanded="false">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-purple">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Preferred position</div>
+          <div class="accordion-sub" id="position-sub">Centre, RW</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-position">
+      <div class="pill-group">
+        <div class="pill-group-label">Select all that apply</div>
+        <div class="pill-grid">
+          <button class="multi-pill selected" data-pos="Centre">Centre</button>
+          <button class="multi-pill" data-pos="RW">RW</button>
+          <button class="multi-pill selected" data-pos="LW">LW</button>
+          <button class="multi-pill" data-pos="Defense">Defense</button>
+          <button class="multi-pill" data-pos="Goalie">Goalie</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kids Profiles -->
+    <div class="accordion-row" id="hdr-kids" tabindex="0" aria-expanded="false" style="border-bottom:none;">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-green">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Kids profiles</div>
+          <div class="accordion-sub">2 profiles linked</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-kids">
+      <div class="kids-panel-inner">
+        <div class="kid-card" tabindex="0">
+          <div class="kid-card-left">
+            <div class="kid-avatar">AJ</div>
+            <div>
+              <div class="kid-name">Alex Jr.</div>
+              <div class="kid-age">Age 8</div>
+            </div>
+          </div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="kid-card" tabindex="0">
+          <div class="kid-card-left">
+            <div class="kid-avatar">MR</div>
+            <div>
+              <div class="kid-name">Maya Rivera</div>
+              <div class="kid-age">Age 11</div>
+            </div>
+          </div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <button class="add-kid-btn" id="add-kid-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add a kid's profile
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sign out -->
+  <button class="signout-btn" id="signout-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Sign out
+  </button>
+
+</div>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+  <a class="nav-item" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+  <a class="nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
+  <a class="nav-item active" href="rinkside-profile.html" aria-label="Profile"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── Accordion setup ──
+  function setupAccordion(headerId, panelId) {
+    const hdr = document.getElementById(headerId);
+    const panel = document.getElementById(panelId);
+    hdr.addEventListener('click', () => {
+      const isOpen = panel.classList.contains('open');
+      document.querySelectorAll('.accordion-panel').forEach(p => p.classList.remove('open'));
+      document.querySelectorAll('.accordion-row').forEach(r => { r.classList.remove('open'); r.setAttribute('aria-expanded', 'false'); });
+      if (!isOpen) {
+        panel.classList.add('open');
+        hdr.classList.add('open');
+        hdr.setAttribute('aria-expanded', 'true');
+      }
+    });
+    hdr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hdr.click(); } });
+  }
+  setupAccordion('hdr-profile',  'panel-profile');
+  setupAccordion('hdr-skill',    'panel-skill');
+  setupAccordion('hdr-position', 'panel-position');
+  setupAccordion('hdr-kids',     'panel-kids');
+  setupAccordion('hdr-account',  'panel-account');
+
+  // ── Profile info sub-rows ──
+  document.querySelectorAll('.sub-row').forEach(row => {
+    row.addEventListener('click', () => showToast(row.dataset.toast));
+    row.addEventListener('keydown', e => { if (e.key === 'Enter') showToast(row.dataset.toast); });
+  });
+
+  // ── Skill level radio ──
+  document.querySelectorAll('#panel-skill .radio-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('#panel-skill .radio-dot').forEach(d => d.classList.remove('selected'));
+      opt.querySelector('.radio-dot').classList.add('selected');
+      const val = opt.dataset.value;
+      document.getElementById('skill-sub').textContent = val;
+      showToast(`⭐ Skill level set to ${val}`);
+    });
+    opt.addEventListener('keydown', e => { if (e.key === 'Enter') opt.click(); });
+  });
+
+  // ── Preferred position multi-select ──
+  function updatePositionSub() {
+    const selected = [...document.querySelectorAll('.multi-pill.selected')].map(p => p.dataset.pos);
+    document.getElementById('position-sub').textContent = selected.length ? selected.join(', ') : 'None selected';
+  }
+  document.querySelectorAll('.multi-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      pill.classList.toggle('selected');
+      updatePositionSub();
+      const sel = [...document.querySelectorAll('.multi-pill.selected')].map(p => p.dataset.pos);
+      showToast(`🏒 Positions: ${sel.length ? sel.join(', ') : 'None'}`);
+    });
+  });
+  updatePositionSub();
+
+  // ── Kids profile cards ──
+  document.querySelectorAll('.kid-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const name = card.querySelector('.kid-name').textContent;
+      showToast(`👦 Editing ${name}'s profile…`);
+    });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter') card.click(); });
+  });
+  document.getElementById('add-kid-btn').addEventListener('click', () => showToast('➕ Adding a new kid profile…'));
+
+  // ── Achievements ──
+  document.querySelectorAll('.achievement-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.querySelector('.achievement-name').textContent;
+      showToast(chip.classList.contains('locked') ? `🔒 ${name} — not yet earned` : `🏅 ${name} earned!`);
+    });
+  });
+  document.getElementById('edit-avatar').addEventListener('click', () => showToast('📷 Edit profile photo…'));
+  document.getElementById('signout-btn').addEventListener('click', () => showToast('👋 Signing out…'));
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => showToast(`Navigating to ${item.getAttribute('aria-label')}…`));
+  });
+</script>
+</body>
+</html>

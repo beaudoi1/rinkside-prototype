@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — My Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rink-dark: #0b1824;
+    --rink-mid: #132233;
+    --rink-panel: #182f42;
+    --accent: #38bdf8;
+    --accent-glow: rgba(56,189,248,0.18);
+    --accent-hot: #f97316;
+    --accent-purple: #a78bfa;
+    --accent-purple-glow: rgba(167,139,250,0.15);
+    --text-primary: #f0f8ff;
+    --text-muted: #7fa9c0;
+    --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12);
+    --border-mid: rgba(56,189,248,0.22);
+    --border-purple: rgba(167,139,250,0.22);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--rink-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(88deg, transparent, transparent 60px, rgba(56,189,248,0.018) 60px, rgba(56,189,248,0.018) 61px),
+      repeating-linear-gradient(2deg, transparent, transparent 120px, rgba(56,189,248,0.012) 120px, rgba(56,189,248,0.012) 121px);
+    pointer-events: none; z-index: 0;
+  }
+
+  .glow-top {
+    position: fixed; top: -120px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(167,139,250,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-bottom {
+    position: fixed; bottom: -60px; right: -80px;
+    width: 400px; height: 300px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page {
+    position: relative; z-index: 1;
+    max-width: 420px; margin: 0 auto;
+    padding: 0 0 100px; min-height: 100vh;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 0;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 22px;
+    letter-spacing: -0.5px; color: var(--text-primary);
+  }
+  .logo span { color: var(--accent); }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--rink-panel); border: 1.5px solid var(--border-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500; color: var(--accent);
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .avatar:hover { border-color: var(--accent); }
+
+  /* ── BACK BUTTON ── */
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 18px 20px 0;
+    animation: fadeUp 0.4s 0.05s ease both;
+    margin-bottom: 4px;
+  }
+  .page-eyebrow { font-size: 12px; color: var(--text-muted); font-weight: 300; letter-spacing: 0.02em; margin-bottom: 4px; }
+  .page-title {
+    font-family: var(--font-display); font-size: 30px; font-weight: 800;
+    line-height: 1.1; letter-spacing: -0.5px; margin-bottom: 18px;
+  }
+  .page-title em { font-style: italic; font-family: var(--font-body); font-weight: 300; color: var(--accent-purple); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; margin-bottom: 10px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-dim);
+    padding: 0 20px; margin-bottom: 10px;
+  }
+  .section-header .section-label { padding: 0; margin-bottom: 0; }
+  .section-action {
+    font-size: 12px; font-weight: 500; color: var(--accent-purple);
+    background: none; border: none; cursor: pointer;
+    font-family: var(--font-body);
+    display: flex; align-items: center; gap: 3px;
+    opacity: 0.85; transition: opacity 0.15s; padding: 0;
+  }
+  .section-action:hover { opacity: 1; }
+
+  /* ── FEATURED TEAM CARD ── */
+  .team-hero-card {
+    margin: 0 20px 24px;
+    background: linear-gradient(135deg, #1a1030 0%, #221540 100%);
+    border: 1px solid var(--border-purple);
+    border-radius: var(--radius); padding: 18px;
+    cursor: pointer; position: relative;
+    transition: transform 0.18s, box-shadow 0.18s;
+    animation: fadeUp 0.4s 0.1s ease both;
+  }
+  .team-hero-card::after {
+    content: ''; position: absolute;
+    top: -30px; right: -30px; width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(167,139,250,0.1), transparent 70%);
+    pointer-events: none;
+  }
+  .team-hero-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
+  .team-hero-card:active { transform: scale(0.98); }
+
+  .team-hero-top {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; margin-bottom: 14px;
+  }
+  .team-logo {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--accent-purple-glow);
+    border: 1.5px solid rgba(167,139,250,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .team-hero-badge {
+    font-size: 11px; font-weight: 500;
+    background: rgba(167,139,250,0.15); color: var(--accent-purple);
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid rgba(167,139,250,0.25);
+  }
+  .team-hero-name {
+    font-family: var(--font-display); font-size: 22px; font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .team-hero-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 14px; }
+  .team-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .team-stat {
+    background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); padding: 8px 10px;
+  }
+  .team-stat-label { font-size: 10px; color: var(--text-dim); margin-bottom: 2px; }
+  .team-stat-val { font-size: 14px; font-weight: 600; }
+  .next-game-bar {
+    background: rgba(0,0,0,0.2); border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .next-game-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .next-game-name { font-size: 13px; font-weight: 500; }
+  .next-game-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .next-game-pill {
+    background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3);
+    color: var(--accent-purple); font-size: 11px; font-weight: 500;
+    padding: 5px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ── TEAM LIST ROWS ── */
+  .teams-list {
+    padding: 0 20px; display: flex; flex-direction: column; gap: 10px;
+    animation: fadeUp 0.4s 0.15s ease both;
+  }
+  .team-row {
+    background: var(--rink-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+  }
+  .team-row:hover { border-color: var(--border-purple); transform: translateX(2px); }
+  .team-row:active { transform: scale(0.98); }
+  .team-row-logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--rink-mid); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .team-row-info { flex: 1; min-width: 0; }
+  .team-row-name { font-size: 14px; font-weight: 500; }
+  .team-row-sub { font-size: 12px; color: var(--text-muted); font-weight: 300; margin-top: 2px; }
+  .team-row-meta { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+  .team-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid rgba(167,139,250,0.2); color: var(--accent-purple);
+    background: rgba(167,139,250,0.07);
+  }
+  .team-row-right { text-align: right; flex-shrink: 0; }
+  .team-next-label { font-size: 10px; color: var(--text-dim); }
+  .team-next-time { font-size: 12px; font-weight: 500; color: var(--text-primary); margin-top: 2px; }
+  .team-record { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── ROSTER SECTION ── */
+  .roster-scroll {
+    display: flex; gap: 10px;
+    padding: 0 20px; overflow-x: auto; scrollbar-width: none;
+    margin-bottom: 24px;
+    animation: fadeUp 0.4s 0.2s ease both;
+  }
+  .roster-scroll::-webkit-scrollbar { display: none; }
+  .player-chip {
+    flex-shrink: 0; background: var(--rink-panel);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; min-width: 110px;
+    cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
+  }
+  .player-chip:hover { border-color: var(--border-purple); transform: translateY(-2px); }
+  .player-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-purple-glow);
+    border: 1.5px solid rgba(167,139,250,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--accent-purple);
+  }
+  .player-name { font-size: 12px; font-weight: 500; }
+  .player-pos { font-size: 10px; color: var(--text-dim); }
+  .player-chip.you .player-avatar {
+    background: rgba(56,189,248,0.15);
+    border-color: rgba(56,189,248,0.3); color: var(--accent);
+  }
+  .player-chip.you .player-name { color: var(--accent); }
+
+  /* ── TEAM SELECTOR DROPDOWN ── */
+  .team-selector-wrap {
+    padding: 0 20px; margin-bottom: 22px;
+    position: relative; z-index: 100;
+    animation: fadeUp 0.4s 0.08s ease both;
+  }
+  .team-selector-btn {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    background: var(--rink-panel); border: 1px solid var(--border-purple);
+    border-radius: var(--radius); padding: 12px 16px;
+    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: var(--font-body);
+  }
+  .team-selector-btn:hover { border-color: rgba(167,139,250,0.4); box-shadow: 0 0 0 3px rgba(167,139,250,0.08); }
+  .team-selector-btn.open { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.1); }
+  .selector-logo {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: var(--accent-purple-glow); border: 1px solid rgba(167,139,250,0.25);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .selector-info { flex: 1; text-align: left; }
+  .selector-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .selector-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 1px; }
+  .selector-chevron {
+    color: var(--accent-purple); transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .team-selector-btn.open .selector-chevron { transform: rotate(180deg); }
+
+  .team-dropdown {
+    position: absolute; left: 20px; right: 20px; top: calc(100% + 6px);
+    background: var(--rink-panel); border: 1px solid var(--border-purple);
+    border-radius: var(--radius); overflow: hidden;
+    z-index: 999; box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    opacity: 0; transform: translateY(-6px) scaleY(0.97);
+    transform-origin: top; pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .team-dropdown.open {
+    opacity: 1; transform: translateY(0) scaleY(1); pointer-events: all;
+  }
+  .dropdown-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: rgba(167,139,250,0.06); }
+  .dropdown-item.active { background: rgba(167,139,250,0.1); }
+  .dropdown-item-logo {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: var(--accent-purple-glow); border: 1px solid rgba(167,139,250,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .dropdown-item-info { flex: 1; }
+  .dropdown-item-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .dropdown-item-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 1px; }
+  .dropdown-item-check { color: var(--accent-purple); flex-shrink: 0; }
+  .dropdown-divider {
+    padding: 10px 16px 6px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .dropdown-join {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; cursor: pointer;
+    transition: background 0.12s; color: var(--accent);
+  }
+  .dropdown-join:hover { background: rgba(56,189,248,0.05); }
+  .dropdown-join span { font-size: 13px; font-weight: 500; }
+
+  /* ── ACTIVE TEAM LABEL ── */
+
+  /* ── UPCOMING GAMES ── */
+  .games-list {
+    padding: 0 20px; display: flex; flex-direction: column; gap: 10px;
+    animation: fadeUp 0.4s 0.25s ease both;
+  }
+  .game-row {
+    background: var(--rink-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    cursor: pointer; transition: border-color 0.15s, transform 0.15s;
+  }
+  .game-row:hover { border-color: var(--border-purple); transform: translateX(2px); }
+  .game-row:active { transform: scale(0.98); }
+  .game-row-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .game-type { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .game-type.game { color: var(--accent-purple); }
+  .game-type.practice { color: var(--accent); }
+  .game-type.scrimmage { color: #fb923c; }
+  .game-badge {
+    font-size: 10px; font-weight: 500; padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .game-badge-purple { background: rgba(167,139,250,0.12); color: var(--accent-purple); }
+  .game-badge-blue { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .game-badge-amber { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .game-matchup {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .game-team { font-size: 13px; font-weight: 500; }
+  .game-vs { font-size: 11px; color: var(--text-dim); }
+  .game-meta { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+
+  /* ── JOIN CARD ── */
+  .join-card {
+    margin: 0 20px; padding: 16px;
+    border: 1px dashed rgba(56,189,248,0.2); border-radius: var(--radius);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    animation: fadeUp 0.4s 0.3s ease both;
+  }
+  .join-card:hover { border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.04); }
+  .join-icon {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.2);
+    display: flex; align-items: center; justify-content: center; color: var(--accent);
+  }
+  .join-text { flex: 1; }
+  .join-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .join-sub { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+
+  /* ── STATS SECTION ── */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 0 20px; margin-bottom: 24px;
+    animation: fadeUp 0.4s 0.28s ease both;
+  }
+  .stat-card {
+    background: var(--rink-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .stat-card-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px;
+  }
+  .stat-card-val {
+    font-family: var(--font-display); font-size: 26px; font-weight: 700;
+    line-height: 1; margin-bottom: 4px;
+  }
+  .stat-card-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+  .stat-card.highlight { border-color: rgba(167,139,250,0.3); background: linear-gradient(135deg, #1a1030, #1e1238); }
+  .stat-card.highlight .stat-card-val { color: var(--accent-purple); }
+
+  /* ── STANDINGS TABLE ── */
+  .standings-wrap {
+    padding: 0 20px; margin-bottom: 24px;
+    animation: fadeUp 0.4s 0.32s ease both;
+  }
+  .standings-table {
+    background: var(--rink-panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .standings-header {
+    display: grid; grid-template-columns: 24px 1fr 36px 36px 36px 36px 48px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-dim);
+    gap: 4px; align-items: center;
+  }
+  .standings-row {
+    display: grid; grid-template-columns: 24px 1fr 36px 36px 36px 36px 48px;
+    padding: 10px 14px; gap: 4px; align-items: center;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.12s;
+    font-size: 13px;
+  }
+  .standings-row:last-child { border-bottom: none; }
+  .standings-row:hover { background: rgba(167,139,250,0.05); }
+  .standings-row.my-team {
+    background: rgba(167,139,250,0.08);
+    border-left: 2px solid var(--accent-purple);
+  }
+  .standings-row.my-team:hover { background: rgba(167,139,250,0.13); }
+  .standings-pos { font-size: 12px; font-weight: 600; color: var(--text-dim); text-align: center; }
+  .standings-pos.top { color: #fbbf24; }
+  .standings-team-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .standings-num { font-size: 12px; text-align: center; color: var(--text-muted); }
+  .standings-pts { font-size: 13px; font-weight: 600; text-align: center; color: var(--text-primary); }
+  .standings-streak {
+    font-size: 10px; font-weight: 500; padding: 2px 7px;
+    border-radius: 999px; text-align: center; white-space: nowrap;
+  }
+  .streak-w { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .streak-l { background: rgba(248,113,113,0.12); color: #f87171; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    background: rgba(11,24,36,0.92);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 20px; display: flex; z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px 0; transition: opacity 0.15s;
+  }
+  .nav-item:hover { opacity: 0.8; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 9px; font-weight: 400; }
+  .nav-item.active svg { stroke: var(--accent-purple); }
+  .nav-item.active span { color: var(--accent-purple); font-weight: 500; }
+  .nav-item:not(.active) svg { stroke: var(--text-dim); }
+  .nav-item:not(.active) span { color: var(--text-dim); }
+  .nav-item { text-decoration: none; }
+  .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--rink-panel); border: 1px solid var(--border-mid);
+    border-radius: 999px; padding: 10px 20px;
+    font-size: 13px; font-weight: 500; color: var(--text-primary);
+    white-space: nowrap; z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow-top"></div>
+<div class="glow-bottom"></div>
+
+<div class="page">
+
+  <!-- Top nav -->
+  <nav class="topnav">
+    <div class="logo">Rink<span>side</span></div>
+    <div class="avatar" id="avatar">JR</div>
+  </nav>
+
+  <!-- Back -->
+    </button>
+
+  <!-- Page header -->
+  <header class="page-header">
+    <p class="page-eyebrow">Jordan Rivera · 2 teams</p>
+    <h1 class="page-title">My <em>teams</em></h1>
+  </header>
+
+  <!-- Team selector dropdown -->
+  <div class="team-selector-wrap">
+    <button class="team-selector-btn" id="selector-btn" aria-haspopup="listbox" aria-expanded="false">
+      <div class="selector-logo" id="selector-logo">🐺</div>
+      <div class="selector-info">
+        <div class="selector-name" id="selector-name">Apex Wolves</div>
+        <div class="selector-sub" id="selector-sub">D2 · Adult Hockey</div>
+      </div>
+      <svg class="selector-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="team-dropdown" id="team-dropdown" role="listbox">
+      <div class="dropdown-divider">My teams</div>
+      <div class="dropdown-item active" role="option" data-team="wolves" tabindex="0">
+        <div class="dropdown-item-logo">🐺</div>
+        <div class="dropdown-item-info">
+          <div class="dropdown-item-name">Apex Wolves</div>
+          <div class="dropdown-item-sub">D2 · Adult Hockey</div>
+        </div>
+        <svg class="dropdown-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="dropdown-item" role="option" data-team="pickups" tabindex="0">
+        <div class="dropdown-item-logo">🏒</div>
+        <div class="dropdown-item-info">
+          <div class="dropdown-item-name">Friday Pickups</div>
+          <div class="dropdown-item-sub">Recreational · 4v4</div>
+        </div>
+        <svg class="dropdown-item-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="dropdown-join" id="dropdown-join" tabindex="0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Join or create a team</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active team hero -->
+  <div class="team-hero-card" id="hero-card" tabindex="0">
+    <div class="team-hero-top">
+      <div class="team-logo">🐺</div>
+      <span class="team-hero-badge">D2 · Adult Hockey</span>
+    </div>
+    <div class="team-hero-name">Apex Wolves</div>
+    <div class="team-hero-sub">Apex Ice Arena · Est. 2021</div>
+    <div class="team-stats">
+      <div class="team-stat">
+        <div class="team-stat-label">Record</div>
+        <div class="team-stat-val">8 – 3</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-label">Players</div>
+        <div class="team-stat-val">14</div>
+      </div>
+      <div class="team-stat">
+        <div class="team-stat-label">Standing</div>
+        <div class="team-stat-val" style="color:#4ade80;">2nd</div>
+      </div>
+    </div>
+    <div class="next-game-bar">
+      <div>
+        <div class="next-game-label">Next game</div>
+        <div class="next-game-name">vs. Ice Hawks</div>
+        <div class="next-game-time">Sat Jun 14 · South Suburban · 8:00 PM</div>
+      </div>
+      <div class="next-game-pill">Sat</div>
+    </div>
+  </div>
+
+  <!-- Roster -->
+  <div class="section-header">
+    <p class="section-label">Roster — Apex Wolves</p>
+    <button class="section-action" id="full-roster-btn">
+      Full roster <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="roster-scroll">
+    <div class="player-chip you" tabindex="0">
+      <div class="player-avatar">JR</div>
+      <div class="player-name">You</div>
+      <div class="player-pos">C / RW</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">MK</div>
+      <div class="player-name">M. Kim</div>
+      <div class="player-pos">Goalie</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">TS</div>
+      <div class="player-name">T. Shaw</div>
+      <div class="player-pos">D</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">AL</div>
+      <div class="player-name">A. Lopez</div>
+      <div class="player-pos">LW</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">RC</div>
+      <div class="player-name">R. Chen</div>
+      <div class="player-pos">D</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">PW</div>
+      <div class="player-name">P. Walsh</div>
+      <div class="player-pos">RW</div>
+    </div>
+    <div class="player-chip" tabindex="0">
+      <div class="player-avatar">+8</div>
+      <div class="player-name">More</div>
+      <div class="player-pos">players</div>
+    </div>
+  </div>
+
+  <!-- Upcoming games -->
+  <div class="section-header">
+    <p class="section-label">Upcoming games &amp; practices</p>
+    <button class="section-action" id="full-schedule-btn">
+      Full schedule <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="games-list">
+
+    <div class="game-row" tabindex="0">
+      <div class="game-row-top">
+        <span class="game-type game">Game</span>
+        <span class="game-badge game-badge-purple">Apex Wolves</span>
+      </div>
+      <div class="game-matchup">
+        <span class="game-team">Apex Wolves</span>
+        <span class="game-vs">vs</span>
+        <span class="game-team">Ice Hawks</span>
+      </div>
+      <div class="game-meta">Sat Jun 14 · South Suburban Sports · Rink B · 8:00 PM</div>
+    </div>
+
+    <div class="game-row" tabindex="0">
+      <div class="game-row-top">
+        <span class="game-type practice">Practice</span>
+        <span class="game-badge game-badge-blue">Apex Wolves</span>
+      </div>
+      <div class="game-matchup">
+        <span class="game-team">Team Practice</span>
+      </div>
+      <div class="game-meta">Tue Jun 17 · Apex Ice Arena · Rink A · 6:00 AM</div>
+    </div>
+
+    <div class="game-row" tabindex="0">
+      <div class="game-row-top">
+        <span class="game-type game">Game</span>
+        <span class="game-badge game-badge-purple">Friday Pickups</span>
+      </div>
+      <div class="game-matchup">
+        <span class="game-team">Friday Pickups</span>
+        <span class="game-vs">4v4</span>
+        <span class="game-team">Open</span>
+      </div>
+      <div class="game-meta">Fri Jun 20 · Apex Ice Arena · Rink A · 6:00 AM</div>
+    </div>
+
+    <div class="game-row" tabindex="0">
+      <div class="game-row-top">
+        <span class="game-type scrimmage">Scrimmage</span>
+        <span class="game-badge game-badge-amber">Apex Wolves</span>
+      </div>
+      <div class="game-matchup">
+        <span class="game-team">Apex Wolves</span>
+        <span class="game-vs">vs</span>
+        <span class="game-team">Night Owls</span>
+      </div>
+      <div class="game-meta">Sat Jun 21 · Apex Ice Arena · Rink B · 9:00 PM</div>
+    </div>
+
+    <div class="game-row" tabindex="0">
+      <div class="game-row-top">
+        <span class="game-type game">Game</span>
+        <span class="game-badge game-badge-purple">Apex Wolves</span>
+      </div>
+      <div class="game-matchup">
+        <span class="game-team">Apex Wolves</span>
+        <span class="game-vs">vs</span>
+        <span class="game-team">Blizzard FC</span>
+      </div>
+      <div class="game-meta">Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM</div>
+    </div>
+
+  </div>
+
+  <!-- Stats -->
+  <div class="section-header" style="margin-top:28px;">
+    <p class="section-label">Stats</p>
+  </div>
+  <div class="stats-grid" id="stats-grid">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- Standings -->
+  <div class="section-header">
+    <p class="section-label">Standings</p>
+  </div>
+  <div class="standings-wrap">
+    <div class="standings-table">
+      <div class="standings-header">
+        <div>#</div>
+        <div>Team</div>
+        <div style="text-align:center">W</div>
+        <div style="text-align:center">L</div>
+        <div style="text-align:center">T</div>
+        <div style="text-align:center">Pts</div>
+        <div style="text-align:center">Streak</div>
+      </div>
+      <div id="standings-body">
+        <!-- injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Join a team -->
+  <div class="join-card" id="join-card" tabindex="0" style="margin-top:24px;">
+    <div class="join-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div class="join-text">
+      <div class="join-title">Join or create a team</div>
+      <div class="join-sub">Find leagues, pickup groups &amp; more near you</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+
+</div>
+
+<!-- Bottom nav — Teams active -->
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+  <a class="nav-item active" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+  <a class="nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
+  <a class="nav-item" href="rinkside-profile.html" aria-label="Profile"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── Team data ──
+  const teams = {
+    wolves: {
+      logo: '🐺', name: 'Apex Wolves', sub: 'D2 · Adult Hockey',
+      badge: 'D2 · Adult Hockey', established: 'Apex Ice Arena · Est. 2021',
+      record: '8 – 3', players: '14', standing: '2nd', standingColor: '#4ade80',
+      nextGame: 'vs. Ice Hawks', nextTime: 'Sat Jun 14 · South Suburban · 8:00 PM', nextPill: 'Sat',
+      rosterLabel: 'Roster — Apex Wolves',
+      roster: [
+        { initials:'JR', name:'You', pos:'C / RW', you:true },
+        { initials:'MK', name:'M. Kim', pos:'Goalie' },
+        { initials:'TS', name:'T. Shaw', pos:'D' },
+        { initials:'AL', name:'A. Lopez', pos:'LW' },
+        { initials:'RC', name:'R. Chen', pos:'D' },
+        { initials:'PW', name:'P. Walsh', pos:'RW' },
+        { initials:'+8', name:'More', pos:'players' },
+      ],
+      games: [
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Ice Hawks', meta:'Sat Jun 14 · South Suburban Sports · Rink B · 8:00 PM' },
+        { type:'practice', typeClass:'practice', badge:'game-badge-blue', badgeTeam:'Apex Wolves', team1:'Team Practice', vs:'', team2:'', meta:'Tue Jun 17 · Apex Ice Arena · Rink A · 6:00 AM' },
+        { type:'scrimmage', typeClass:'scrimmage', badge:'game-badge-amber', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Night Owls', meta:'Sat Jun 21 · Apex Ice Arena · Rink B · 9:00 PM' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Blizzard FC', meta:'Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM' },
+      ],
+      stats: [
+        { label:'Goals scored', val:'47', sub:'4.3 per game', highlight:true },
+        { label:'Goals allowed', val:'29', sub:'2.6 per game', highlight:false },
+        { label:'Shots on goal', val:'312', sub:'28.4 per game', highlight:false },
+        { label:'Power plays', val:'14 / 38', sub:'36.8% efficiency', highlight:false },
+        { label:'Penalty mins', val:'88', sub:'8.0 per game', highlight:false },
+        { label:'Save %', val:'91%', sub:'Goalie avg', highlight:true },
+      ],
+      standings: [
+        { pos:1, name:'Ice Hawks', w:10, l:1, t:0, pts:20, streak:'W3', streakClass:'streak-w', me:false },
+        { pos:2, name:'Apex Wolves', w:8, l:3, t:0, pts:16, streak:'W2', streakClass:'streak-w', me:true },
+        { pos:3, name:'Blizzard FC', w:7, l:4, t:0, pts:14, streak:'L1', streakClass:'streak-l', me:false },
+        { pos:4, name:'Night Owls', w:5, l:5, t:1, pts:11, streak:'W1', streakClass:'streak-w', me:false },
+        { pos:5, name:'Frost Giants', w:4, l:6, t:1, pts:9, streak:'L2', streakClass:'streak-l', me:false },
+        { pos:6, name:'Puck Wolves', w:2, l:9, t:0, pts:4, streak:'L4', streakClass:'streak-l', me:false },
+      ],
+    },
+    pickups: {
+      logo: '🏒', name: 'Friday Pickups', sub: 'Recreational · 4v4',
+      badge: 'Recreational · 4v4', established: 'Apex Ice Arena · Weekly',
+      record: '—', players: '8', standing: '—', standingColor: 'var(--text-muted)',
+      nextGame: 'Open 4v4', nextTime: 'Fri Jun 20 · Apex Ice Arena · Rink A · 6:00 AM', nextPill: 'Fri',
+      rosterLabel: 'Roster — Friday Pickups',
+      roster: [
+        { initials:'JR', name:'You', pos:'Forward', you:true },
+        { initials:'MK', name:'M. Kim', pos:'Defense' },
+        { initials:'TS', name:'T. Shaw', pos:'Forward' },
+        { initials:'AL', name:'A. Lopez', pos:'Goalie' },
+        { initials:'+4', name:'More', pos:'players' },
+      ],
+      games: [
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 20 · Apex Ice Arena · Rink A · 6:00 AM' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 27 · Apex Ice Arena · Rink A · 6:00 AM' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jul 4 · Apex Ice Arena · Rink A · 6:00 AM' },
+      ],
+      stats: [
+        { label:'Games played', val:'12', sub:'This season', highlight:false },
+        { label:'Goals scored', val:'31', sub:'2.6 per game', highlight:true },
+        { label:'Assists', val:'44', sub:'3.7 per game', highlight:false },
+        { label:'Attendance', val:'92%', sub:'Avg per session', highlight:true },
+        { label:'Shots on goal', val:'148', sub:'12.3 per game', highlight:false },
+        { label:'Penalty mins', val:'12', sub:'1.0 per game', highlight:false },
+      ],
+      standings: null,
+    }
+  };
+
+  let activeTeam = 'wolves';
+
+  function renderTeam(key) {
+    const d = teams[key];
+
+    // Hero card
+    document.querySelector('.team-logo').textContent = d.logo;
+    document.querySelector('.team-hero-badge').textContent = d.badge;
+    document.querySelector('.team-hero-name').textContent = d.name;
+    document.querySelector('.team-hero-sub').textContent = d.established;
+    const stats = document.querySelectorAll('.team-stat-val');
+    stats[0].textContent = d.record;
+    stats[1].textContent = d.players;
+    stats[2].textContent = d.standing;
+    stats[2].style.color = d.standingColor;
+    document.querySelector('.next-game-name').textContent = d.nextGame;
+    document.querySelector('.next-game-time').textContent = d.nextTime;
+    document.querySelector('.next-game-pill').textContent = d.nextPill;
+
+    // Roster label
+    document.querySelector('.section-header .section-label').textContent = d.rosterLabel;
+
+    // Roster chips
+    const rosterScroll = document.querySelector('.roster-scroll');
+    rosterScroll.innerHTML = d.roster.map(p => `
+      <div class="player-chip ${p.you ? 'you' : ''}" tabindex="0">
+        <div class="player-avatar">${p.initials}</div>
+        <div class="player-name">${p.name}</div>
+        <div class="player-pos">${p.pos}</div>
+      </div>
+    `).join('');
+    rosterScroll.querySelectorAll('.player-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const name = chip.querySelector('.player-name').textContent;
+        showToast(name === 'You' ? "👤 That's you!" : `👤 Viewing ${name}…`);
+      });
+    });
+
+    // Games list
+    const gamesList = document.querySelector('.games-list');
+    gamesList.innerHTML = d.games.map(g => `
+      <div class="game-row" tabindex="0">
+        <div class="game-row-top">
+          <span class="game-type ${g.typeClass}">${g.type}</span>
+          <span class="game-badge ${g.badge}">${g.badgeTeam}</span>
+        </div>
+        <div class="game-matchup">
+          <span class="game-team">${g.team1}</span>
+          ${g.vs ? `<span class="game-vs">${g.vs}</span><span class="game-team">${g.team2}</span>` : ''}
+        </div>
+        <div class="game-meta">${g.meta}</div>
+      </div>
+    `).join('');
+    gamesList.querySelectorAll('.game-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const teams = [...row.querySelectorAll('.game-team')].map(t => t.textContent).join(' vs ');
+        showToast(`🏒 Opening ${teams}…`);
+      });
+    });
+
+    // Selector button
+    document.getElementById('selector-logo').textContent = d.logo;
+    document.getElementById('selector-name').textContent = d.name;
+    document.getElementById('selector-sub').textContent = d.sub;
+
+    // Dropdown active states
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      const isActive = item.dataset.team === key;
+      item.classList.toggle('active', isActive);
+      item.querySelector('.dropdown-item-check').style.opacity = isActive ? '1' : '0';
+    });
+
+    // Stats grid
+    const statsGrid = document.getElementById('stats-grid');
+    statsGrid.innerHTML = d.stats.map(s => `
+      <div class="stat-card ${s.highlight ? 'highlight' : ''}">
+        <div class="stat-card-label">${s.label}</div>
+        <div class="stat-card-val">${s.val}</div>
+        <div class="stat-card-sub">${s.sub}</div>
+      </div>
+    `).join('');
+
+    // Standings
+    const standingsBody = document.getElementById('standings-body');
+    const standingsWrap = document.querySelector('.standings-wrap');
+    const standingsHeader = document.querySelector('.section-header:has(+ .standings-wrap)');
+    if (d.standings) {
+      standingsWrap.style.display = '';
+      if (standingsHeader) standingsHeader.style.display = '';
+      standingsBody.innerHTML = d.standings.map(r => `
+        <div class="standings-row ${r.me ? 'my-team' : ''}" tabindex="0">
+          <div class="standings-pos ${r.pos <= 2 ? 'top' : ''}">${r.pos}</div>
+          <div class="standings-team-name">${r.name}${r.me ? ' ★' : ''}</div>
+          <div class="standings-num">${r.w}</div>
+          <div class="standings-num">${r.l}</div>
+          <div class="standings-num">${r.t}</div>
+          <div class="standings-pts">${r.pts}</div>
+          <div><span class="standings-streak ${r.streakClass}">${r.streak}</span></div>
+        </div>
+      `).join('');
+      standingsBody.querySelectorAll('.standings-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const name = row.querySelector('.standings-team-name').textContent.replace(' ★','');
+          showToast(`🏒 Viewing ${name}`);
+        });
+      });
+    } else {
+      standingsWrap.style.display = 'none';
+      if (standingsHeader) standingsHeader.style.display = 'none';
+    }
+  }
+
+  // ── Dropdown toggle ──
+  const selectorBtn = document.getElementById('selector-btn');
+  const dropdown = document.getElementById('team-dropdown');
+
+  selectorBtn.addEventListener('click', () => {
+    const open = dropdown.classList.toggle('open');
+    selectorBtn.classList.toggle('open', open);
+    selectorBtn.setAttribute('aria-expanded', open);
+  });
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.team-selector-wrap')) {
+      dropdown.classList.remove('open');
+      selectorBtn.classList.remove('open');
+      selectorBtn.setAttribute('aria-expanded', false);
+    }
+  });
+
+  // ── Dropdown item selection ──
+  document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activeTeam = item.dataset.team;
+      renderTeam(activeTeam);
+      dropdown.classList.remove('open');
+      selectorBtn.classList.remove('open');
+      showToast(`🏒 Switched to ${teams[activeTeam].name}`);
+    });
+    item.addEventListener('keydown', e => { if (e.key === 'Enter') item.click(); });
+  });
+
+  document.getElementById('dropdown-join').addEventListener('click', () => {
+    dropdown.classList.remove('open');
+    showToast('➕ Find teams near you…');
+  });
+
+  // ── Static handlers ──
+  document.getElementById('avatar').addEventListener('click', () => window.location.href = 'rinkside-profile.html');
+  document.getElementById('hero-card').addEventListener('click', () => showToast(`🏒 Opening ${teams[activeTeam].name}…`));
+  document.getElementById('hero-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('hero-card').click(); });
+  document.getElementById('full-roster-btn').addEventListener('click', e => { e.stopPropagation(); showToast('👥 Viewing full roster…'); });
+  document.getElementById('full-schedule-btn').addEventListener('click', e => { e.stopPropagation(); showToast('📅 Viewing full schedule…'); });
+  document.getElementById('join-card').addEventListener('click', () => showToast('➕ Find teams near you…'));
+  document.getElementById('join-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('join-card').click(); });
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => showToast(`Navigating to ${item.getAttribute('aria-label')}…`));
+  });
+
+  // Initial render
+  renderTeam(activeTeam);
+</script>
+</body>
+</html>

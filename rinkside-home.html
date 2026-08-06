@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Your Rink, Your Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ice: #e8f4fa;
+    --ice-mid: #c2dff0;
+    --ice-deep: #7ab8d9;
+    --rink-dark: #0b1824;
+    --rink-mid: #132233;
+    --rink-panel: #182f42;
+    --accent: #38bdf8;
+    --accent-hot: #f97316;
+    --accent-glow: rgba(56,189,248,0.18);
+    --text-primary: #f0f8ff;
+    --text-muted: #7fa9c0;
+    --text-dim: #7aa3b8;
+    --accent-purple: #a78bfa;
+    --accent-purple-glow: rgba(167,139,250,0.15);
+    --border: rgba(56,189,248,0.12);
+    --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--rink-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ice texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        88deg,
+        transparent,
+        transparent 60px,
+        rgba(56,189,248,0.018) 60px,
+        rgba(56,189,248,0.018) 61px
+      ),
+      repeating-linear-gradient(
+        2deg,
+        transparent,
+        transparent 120px,
+        rgba(56,189,248,0.012) 120px,
+        rgba(56,189,248,0.012) 121px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow blobs */
+  .glow-top {
+    position: fixed;
+    top: -120px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(56,189,248,0.09) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-bottom {
+    position: fixed;
+    bottom: -60px; right: -80px;
+    width: 400px; height: 300px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* Layout */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 0 100px;
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 0;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+  .logo span { color: var(--accent); }
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--rink-panel);
+    border: 1.5px solid var(--border-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500; color: var(--accent);
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .avatar:hover { border-color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 28px 20px 0;
+    animation: fadeUp 0.5s ease both;
+  }
+  .greeting {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin-bottom: 18px;
+  }
+  .hero-title em {
+    font-style: italic;
+    font-family: var(--font-body);
+    font-weight: 300;
+    color: var(--accent);
+  }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--rink-panel);
+    border: 1px solid var(--border-mid);
+    border-radius: 999px;
+    padding: 10px 16px;
+    margin-bottom: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: text;
+  }
+  .search-bar:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .search-bar svg { flex-shrink: 0; opacity: 0.5; }
+  .search-bar input {
+    background: none; border: none; outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px; font-weight: 300;
+    flex: 1;
+  }
+  .search-bar input::placeholder { color: var(--text-dim); }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 20px;
+    margin-bottom: 10px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 10px;
+  }
+  .section-header .section-label {
+    padding: 0;
+    margin-bottom: 0;
+  }
+  .view-more {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+    padding: 0;
+  }
+  .view-more:hover { opacity: 1; }
+
+  /* ── MY SCHEDULE (primary card) ── */
+  .schedule-card {
+    margin: 0 20px 24px;
+    background: linear-gradient(135deg, #0e2a3e 0%, #16384f 100%);
+    border: 1px solid var(--border-mid);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    animation: fadeUp 0.5s 0.08s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  .schedule-card::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(56,189,248,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .schedule-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .sched-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .sched-icon {
+    width: 36px; height: 36px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sched-icon svg { color: var(--accent); }
+  .sched-badge {
+    font-size: 11px; font-weight: 500;
+    background: rgba(56,189,248,0.15);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(56,189,248,0.25);
+  }
+  .sched-title {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .sched-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; }
+  .sched-next {
+    background: rgba(0,0,0,0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sched-next-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
+  .sched-next-event { font-size: 14px; font-weight: 500; }
+  .sched-next-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .sched-pill {
+    background: rgba(249,115,22,0.15);
+    border: 1px solid rgba(249,115,22,0.3);
+    color: #fb923c;
+    font-size: 11px; font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── QUICK ACTIONS (2-up) ── */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 20px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s 0.16s ease both;
+  }
+  .quick-card {
+    background: var(--rink-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .quick-card:hover {
+    border-color: var(--border-mid);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+  }
+  .quick-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .quick-icon.blue { background: rgba(56,189,248,0.12); color: var(--accent); }
+  .quick-icon.orange { background: rgba(249,115,22,0.1); color: #fb923c; }
+  .quick-title { font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .quick-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+  .quick-count {
+    font-size: 22px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: auto;
+  }
+  .quick-count span { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+
+  /* ── MY TEAMS ── */
+  .teams-card {
+    margin: 0 20px 24px;
+    background: var(--rink-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s;
+    animation: fadeUp 0.5s 0.2s ease both;
+  }
+  .teams-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.35); border-color: var(--border-mid); }
+  .teams-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .teams-title-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .teams-icon {
+    width: 34px; height: 34px;
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: #a78bfa;
+  }
+  .teams-label {
+    font-size: 15px; font-weight: 500;
+  }
+  .teams-badge {
+    font-size: 11px; font-weight: 500;
+    background: rgba(139,92,246,0.12);
+    color: #a78bfa;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(139,92,246,0.25);
+  }
+  .teams-roster {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .teams-roster::-webkit-scrollbar { display: none; }
+  .team-chip {
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    min-width: 130px;
+  }
+  .team-chip-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .team-chip-meta { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+  .team-chip-next { font-size: 11px; color: #a78bfa; margin-top: 6px; }
+
+  /* ── ACTIVITIES NEAR ME (horizontal scroll) ── */
+  .activities-scroll {
+    display: flex;
+    gap: 12px;
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s 0.24s ease both;
+  }
+  .activities-scroll::-webkit-scrollbar { display: none; }
+  .activity-chip {
+    flex-shrink: 0;
+    background: var(--rink-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    width: 150px;
+    transition: border-color 0.18s, transform 0.18s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .activity-chip:hover {
+    border-color: var(--border-mid);
+    transform: translateY(-2px);
+  }
+  .activity-chip.featured {
+    border-color: rgba(56,189,248,0.35);
+    background: linear-gradient(145deg, #132e44, #0f2232);
+  }
+  .chip-tag {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .chip-tag.hot { color: #fb923c; }
+  .chip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .chip-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .chip-meta { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+  .chip-rink { font-size: 11px; color: var(--text-dim); }
+
+  /* ── RINKS NEAR ME ── */
+  .rinks-list {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeUp 0.5s 0.32s ease both;
+  }
+  .rink-row {
+    background: var(--rink-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.18s, transform 0.18s;
+  }
+  .rink-row:hover {
+    border-color: var(--border-mid);
+    transform: translateX(2px);
+  }
+  .rink-thumb {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: var(--rink-mid);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .rink-info { flex: 1; min-width: 0; }
+  .rink-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rink-loc { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+  .rink-right { text-align: right; flex-shrink: 0; }
+  .rink-dist { font-size: 12px; color: var(--accent); font-weight: 500; }
+  .rink-status-open { font-size: 11px; color: #4ade80; }
+  .rink-status-closed { font-size: 11px; color: var(--text-dim); }
+
+  /* ── MY TEAMS ── */
+  .teams-card {
+    margin: 0 20px 24px;
+    background: linear-gradient(135deg, #1a1030 0%, #221540 100%);
+    border: 1px solid rgba(167,139,250,0.22);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    animation: fadeUp 0.5s 0.2s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  .teams-card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(167,139,250,0.1), transparent 70%);
+    pointer-events: none;
+  }
+  .teams-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .teams-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .teams-icon {
+    width: 36px; height: 36px;
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent-purple);
+  }
+  .teams-badge {
+    font-size: 11px; font-weight: 500;
+    background: rgba(167,139,250,0.15);
+    color: var(--accent-purple);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(167,139,250,0.25);
+  }
+  .teams-title {
+    font-family: var(--font-display);
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .teams-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 14px; }
+  .teams-roster {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .teams-roster::-webkit-scrollbar { display: none; }
+  .team-chip {
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(167,139,250,0.18);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    min-width: 130px;
+    transition: border-color 0.18s;
+  }
+  .team-chip:hover { border-color: rgba(167,139,250,0.4); }
+  .team-chip-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .team-chip-meta { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+  .team-chip-next { font-size: 11px; color: var(--accent-purple); margin-top: 6px; }
+  .quick-icon.purple { background: var(--accent-purple-glow); color: var(--accent-purple); }
+
+
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    background: rgba(11,24,36,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 20px;
+    display: flex; z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px 0;
+    transition: opacity 0.15s;
+  }
+  .nav-item:hover { opacity: 0.8; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 9px; font-weight: 400; }
+  .nav-item.active svg { stroke: var(--accent); }
+  .nav-item.active span { color: var(--accent); font-weight: 500; }
+  .nav-item:not(.active) svg { stroke: var(--text-dim); }
+  .nav-item:not(.active) span { color: var(--text-dim); }
+  .nav-item { text-decoration: none; }
+  .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--rink-panel);
+    border: 1px solid var(--border-mid);
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Ensure all interactive elements show pointer */
+  .schedule-card, .quick-card, .teams-card, .team-chip,
+  .activity-chip, .rink-row, .avatar, .search-bar,
+  .view-more, .sched-next { cursor: pointer; }
+
+  /* Active press state for cards */
+  .schedule-card:active, .quick-card:active, .teams-card:active,
+  .activity-chip:active, .rink-row:active, .team-chip:active {
+    transform: scale(0.98);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow-top"></div>
+<div class="glow-bottom"></div>
+
+<div class="page">
+
+  <!-- Top nav -->
+  <nav class="topnav">
+    <div class="logo">Rink<span>side</span></div>
+    <div class="avatar">JR</div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <p class="greeting">Good evening, Jordan</p>
+    <h1 class="hero-title">Find your<br>next <em>session</em></h1>
+    <div class="search-bar" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search rinks, activities…" aria-label="Search rinks and activities">
+    </div>
+  </header>
+
+  <!-- MY SCHEDULE — primary, most personal -->
+  <p class="section-label">My schedule</p>
+  <div class="schedule-card" role="button" tabindex="0" aria-label="My Schedule">
+    <div class="sched-header">
+      <div class="sched-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <span class="sched-badge">3 upcoming</span>
+    </div>
+    <div class="sched-title">My schedule</div>
+    <div class="sched-sub" style="margin-bottom:14px;">Your registered sessions &amp; bookings</div>
+    <div class="sched-next">
+      <div>
+        <div class="sched-next-label">Next up</div>
+        <div class="sched-next-event">Public Skate — Evening</div>
+        <div class="sched-next-time">Tonight · Apex Ice Arena · 7:00 PM</div>
+      </div>
+      <div class="sched-pill">Tonight</div>
+    </div>
+  </div>
+
+  <!-- MY SAVED RINKS + RINKS NEAR ME — quick side by side -->
+  <p class="section-label">Rinks</p>
+  <div class="quick-grid">
+    <div class="quick-card" role="button" tabindex="0" aria-label="My Saved Rinks">
+      <div class="quick-icon blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div>
+        <div class="quick-title">My saved rinks</div>
+        <div class="quick-sub">Favourites &amp; frequent</div>
+      </div>
+      <div class="quick-count">4 <span>rinks</span></div>
+    </div>
+    <div class="quick-card" role="button" tabindex="0" aria-label="Rinks Near Me">
+      <div class="quick-icon orange">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div>
+        <div class="quick-title">Rinks near me</div>
+        <div class="quick-sub">Open now &amp; nearby</div>
+      </div>
+      <div class="quick-count">7 <span>found</span></div>
+    </div>
+  </div>
+
+  <!-- MY TEAMS — between personal and discovery -->
+  <p class="section-label">My teams</p>
+  <div class="teams-card" role="button" tabindex="0" aria-label="My Teams">
+    <div class="teams-header">
+      <div class="teams-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <span class="teams-badge">2 teams</span>
+    </div>
+    <div class="teams-title">My teams</div>
+    <div class="teams-sub">Rosters, schedules &amp; game days</div>
+    <div class="teams-roster">
+      <div class="team-chip">
+        <div class="team-chip-name">Apex Wolves</div>
+        <div class="team-chip-meta">Adult Hockey · D2</div>
+        <div class="team-chip-next">Game Sat 8:00 PM</div>
+      </div>
+      <div class="team-chip">
+        <div class="team-chip-name">Friday Pickups</div>
+        <div class="team-chip-meta">Recreational · 4v4</div>
+        <div class="team-chip-next">Next Fri 6:00 AM</div>
+      </div>
+      <div class="team-chip" style="min-width:100px;display:flex;align-items:center;justify-content:center;border-style:dashed;opacity:0.5;">
+        <div style="font-size:11px;color:var(--text-muted);text-align:center;">+ Join a team</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITIES NEAR ME — horizontal scroll -->
+  <div class="section-header">
+    <p class="section-label">Activities near me</p>
+    <button class="view-more" aria-label="View more activities">View more <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+  </div>
+  <div class="activities-scroll" role="list">
+
+    <div class="activity-chip featured" role="listitem" tabindex="0">
+      <div class="chip-tag"><span class="chip-dot"></span>Live</div>
+      <div class="chip-name">Public Skate</div>
+      <div class="chip-meta">Now → 9:00 PM</div>
+      <div class="chip-rink">Apex Ice Arena</div>
+    </div>
+
+    <div class="activity-chip" role="listitem" tabindex="0">
+      <div class="chip-tag hot"><span class="chip-dot"></span>Filling fast</div>
+      <div class="chip-name">Stick &amp; Puck</div>
+      <div class="chip-meta">Tonight 9:00 PM</div>
+      <div class="chip-rink">Apex Ice Arena</div>
+    </div>
+
+    <div class="activity-chip" role="listitem" tabindex="0">
+      <div class="chip-tag">Tomorrow</div>
+      <div class="chip-name">Learn to Skate</div>
+      <div class="chip-meta">Fri 9:00 AM</div>
+      <div class="chip-rink">Centennial Rink</div>
+    </div>
+
+    <div class="activity-chip" role="listitem" tabindex="0">
+      <div class="chip-tag">Weekend</div>
+      <div class="chip-name">Pickup Hockey</div>
+      <div class="chip-meta">Sat 6:00 AM</div>
+      <div class="chip-rink">South Rink</div>
+    </div>
+
+    <div class="activity-chip" role="listitem" tabindex="0">
+      <div class="chip-tag">Weekend</div>
+      <div class="chip-name">Figure Skating</div>
+      <div class="chip-meta">Sun 7:30 AM</div>
+      <div class="chip-rink">Apex Ice Arena</div>
+    </div>
+
+  </div>
+
+  <div class="section-header">
+    <p class="section-label">Nearby rinks</p>
+    <button class="view-more" aria-label="View more rinks">View more <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+  </div>
+  <div class="rinks-list" role="list">
+
+    <div class="rink-row" role="listitem" tabindex="0">
+      <div class="rink-thumb">🏒</div>
+      <div class="rink-info">
+        <div class="rink-name">Apex Ice Arena</div>
+        <div class="rink-loc">Parker, CO</div>
+      </div>
+      <div class="rink-right">
+        <div class="rink-dist">0.4 mi</div>
+        <div class="rink-status-open">Open</div>
+      </div>
+    </div>
+
+    <div class="rink-row" role="listitem" tabindex="0">
+      <div class="rink-thumb">⛸️</div>
+      <div class="rink-info">
+        <div class="rink-name">Centennial Ice &amp; Events</div>
+        <div class="rink-loc">Centennial, CO</div>
+      </div>
+      <div class="rink-right">
+        <div class="rink-dist">3.1 mi</div>
+        <div class="rink-status-open">Open</div>
+      </div>
+    </div>
+
+    <div class="rink-row" role="listitem" tabindex="0">
+      <div class="rink-thumb">🥅</div>
+      <div class="rink-info">
+        <div class="rink-name">South Suburban Sports Complex</div>
+        <div class="rink-loc">Englewood, CO</div>
+      </div>
+      <div class="rink-right">
+        <div class="rink-dist">5.8 mi</div>
+        <div class="rink-status-closed">Opens 5 AM</div>
+      </div>
+    </div>
+
+    <div class="rink-row" role="listitem" tabindex="0">
+      <div class="rink-thumb">🏟️</div>
+      <div class="rink-info">
+        <div class="rink-name">Lone Tree Rec Center</div>
+        <div class="rink-loc">Lone Tree, CO</div>
+      </div>
+      <div class="rink-right">
+        <div class="rink-dist">7.2 mi</div>
+        <div class="rink-status-closed">Opens 6 AM</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a class="nav-item active" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+  <a class="nav-item" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+  <a class="nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
+  <a class="nav-item" href="rinkside-profile.html" aria-label="Profile"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Toast utility ──
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── Avatar / profile ──
+  document.querySelector('.avatar').addEventListener('click', () =>
+    window.location.href = 'rinkside-profile.html');
+
+  // ── Search bar ──
+  document.querySelector('.search-bar').addEventListener('click', () =>
+    document.querySelector('.search-bar input').focus());
+  document.querySelector('.search-bar input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.value.trim())
+      window.location.href = 'rinkside-explore.html';
+  });
+
+  // ── My Schedule card ──
+  document.querySelector('.schedule-card').addEventListener('click', () =>
+    window.location.href = 'rinkside-schedule.html');
+
+  // ── My Saved Rinks ──
+  document.querySelectorAll('.quick-card')[0].addEventListener('click', () =>
+    window.location.href = 'rinkside-saved.html');
+
+  // ── Rinks Near Me ──
+  document.querySelectorAll('.quick-card')[1].addEventListener('click', () =>
+    window.location.href = 'rinkside-explore.html');
+
+  // ── My Teams card ──
+  document.querySelector('.teams-card').addEventListener('click', function(e) {
+    // Don't fire if a team-chip was clicked
+    if (e.target.closest('.team-chip')) return;
+    window.location.href = 'rinkside-teams.html';
+  });
+
+  // ── Individual team chips ──
+  document.querySelectorAll('.team-chip').forEach(chip => {
+    chip.addEventListener('click', e => {
+      e.stopPropagation();
+      window.location.href = 'rinkside-teams.html';
+    });
+  });
+
+  // ── Activity chips ──
+  document.querySelectorAll('.activity-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      window.location.href = 'rinkside-explore.html?view=activities';
+    });
+  });
+
+  // ── View more — Activities ──
+  document.querySelectorAll('.view-more')[0].addEventListener('click', e => {
+    e.stopPropagation();
+    window.location.href = 'rinkside-explore.html?view=activities';
+  });
+
+  // ── Rink rows ──
+  document.querySelectorAll('.rink-row').forEach(row => {
+    row.addEventListener('click', () => {
+      window.location.href = 'rinkside-explore.html';
+    });
+  });
+
+  // ── View more — Rinks ──
+  document.querySelectorAll('.view-more')[1].addEventListener('click', e => {
+    e.stopPropagation();
+    window.location.href = 'rinkside-explore.html';
+  });
+
+  // ── Keyboard accessibility: Enter = click ──
+  document.querySelectorAll('[tabindex="0"]').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') el.click();
+    });
+  });
+</script>
+</body>
+</html>
