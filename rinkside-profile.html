@@ -269,10 +269,54 @@
         <span class="sub-row-label">Password</span>
         <span class="sub-row-value">Change <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
+      <div class="sub-row" tabindex="0" data-toast="💳 Managing payment methods…">
+        <span class="sub-row-label">Payment methods</span>
+        <span class="sub-row-value">•••• 4242 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="sub-row" tabindex="0" data-toast="🔁 Managing auto-pay plans…">
+        <span class="sub-row-label">Auto-pay &amp; payment plans</span>
+        <span class="sub-row-value">1 active <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
       <div class="sub-row" tabindex="0" data-toast="⭐ Managing subscription…">
         <span class="sub-row-label">Manage subscription</span>
         <span class="sub-row-value">Rinkside Pro <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
+    </div>
+
+    <!-- Waivers -->
+    <div class="accordion-row" id="hdr-waivers" tabindex="0" aria-expanded="false">
+      <div class="accordion-row-left">
+        <div class="accordion-icon ai-orange">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        </div>
+        <div>
+          <div class="accordion-label">Waivers</div>
+          <div class="accordion-sub">Signed at 1 of 4 rinks</div>
+        </div>
+      </div>
+      <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="accordion-panel" id="panel-waivers">
+      <div class="sub-row" style="cursor:default">
+        <span class="sub-row-label">Apex Ice Arena</span>
+        <span class="sub-row-value" style="color:var(--green)">✓ Signed Jul 12, 2026</span>
+      </div>
+      <div class="sub-row" style="cursor:default">
+        <span class="sub-row-label">Foothills Ice Arena</span>
+        <span class="sub-row-value" style="color:var(--text-dim)">Not signed yet</span>
+      </div>
+      <div class="sub-row" style="cursor:default">
+        <span class="sub-row-label">South Suburban</span>
+        <span class="sub-row-value" style="color:var(--text-dim)">Not signed yet</span>
+      </div>
+      <div class="sub-row" style="cursor:default">
+        <span class="sub-row-label">The Ice Ranch</span>
+        <span class="sub-row-value" style="color:var(--text-dim)">Not signed yet</span>
+      </div>
+      <p style="font-size:10.5px; color:var(--text-dim); font-weight:300; padding:10px 16px 4px; line-height:1.5;">
+        Each rink sets its own waiver — signing at one doesn't cover another. You'll be asked to
+        sign the first time you check out at a new rink.
+      </p>
     </div>
 
     <!-- Skill Level -->
@@ -429,6 +473,7 @@
   setupAccordion('hdr-position', 'panel-position');
   setupAccordion('hdr-kids',     'panel-kids');
   setupAccordion('hdr-account',  'panel-account');
+  setupAccordion('hdr-waivers',  'panel-waivers');
 
   // ── Profile info sub-rows ──
   document.querySelectorAll('.sub-row').forEach(row => {

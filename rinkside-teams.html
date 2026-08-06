@@ -988,7 +988,7 @@
 
   // ── Static handlers ──
   document.getElementById('avatar').addEventListener('click', () => window.location.href = 'rinkside-profile.html');
-  document.getElementById('hero-card').addEventListener('click', () => showToast(`🏒 Opening ${teams[activeTeam].name}…`));
+  document.getElementById('hero-card').addEventListener('click', () => window.location.href = 'rinkside-manage-booking.html');
   document.getElementById('hero-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('hero-card').click(); });
   document.getElementById('full-roster-btn').addEventListener('click', e => { e.stopPropagation(); showToast('👥 Viewing full roster…'); });
   document.getElementById('full-schedule-btn').addEventListener('click', e => { e.stopPropagation(); showToast('📅 Viewing full schedule…'); });

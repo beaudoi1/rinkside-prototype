@@ -75,13 +75,33 @@
 
   .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; max-width: 90%; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .dependent-form { display: none; background: var(--rink-mid); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; }
+  .dependent-form.show { display: block; }
+  .dep-input { width: 100%; padding: 11px 14px; border-radius: 8px; border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; margin-bottom: 10px; }
+  .dep-input::placeholder { color: var(--text-dim); }
+  .dep-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .dep-save-btn { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent); color: var(--rink-dark); border: none; font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); }
+  .dep-save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .demo-toggle-wrap { background: rgba(167,139,250,0.08); border: 1px dashed rgba(167,139,250,0.4); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
+  .demo-label { font-size: 10px; font-weight: 700; color: #a78bfa; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .demo-toggle { display: flex; background: var(--rink-mid); border-radius: 999px; padding: 3px; }
+  .demo-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 999px; font-size: 10.5px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); font-family: var(--font-body); }
+  .demo-btn.active { background: #a78bfa; color: var(--rink-dark); }
+
+  .waiver-box { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; }
+  .waiver-text { font-size: 11.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; margin-bottom: 12px; }
+  .waiver-checkbox-row { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: var(--text-primary); cursor: pointer; }
+  .waiver-checkbox-row input { margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); }
+  .waiver-onfile-row { display: flex; align-items: center; gap: 10px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 11.5px; color: var(--green); margin-bottom: 20px; }
 </style>
 </head>
 <body>
 <div class="page">
 
   <div class="topbar">
-    <a class="back-btn" href="rinkside-explore.html" aria-label="Back to Explore">
+    <a class="back-btn" href="rinkside-explore.html?view=activities" aria-label="Back to Explore">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </a>
     <h1>Checkout</h1>
@@ -106,10 +126,21 @@
       <div class="radio-dot"></div>
       <div class="radio-label">Yourself</div>
     </div>
-    <div class="radio-row" tabindex="0" role="radio" aria-checked="false" style="margin-bottom:24px">
-      <div class="radio-dot"></div>
+    <div id="dependent-rows"></div>
+    <div class="radio-row add-dependent-trigger" tabindex="0" role="button" aria-checked="false" id="add-dependent-row">
+      <div class="radio-dot" style="display:none"></div>
       <div class="radio-label" style="color:var(--text-muted)">+ Add a dependent</div>
     </div>
+
+    <div class="dependent-form" id="dependent-form">
+      <p class="section-label" style="margin-top:16px">New dependent</p>
+      <input type="text" class="dep-input" id="dep-first" placeholder="First name">
+      <input type="text" class="dep-input" id="dep-last" placeholder="Last name">
+      <input type="date" class="dep-input" id="dep-dob" aria-label="Date of birth">
+      <button class="dep-save-btn" onclick="saveDependent()">Save &amp; Select</button>
+    </div>
+
+    <div style="margin-bottom:8px"></div>
 
     <p class="section-label">Price</p>
     <div class="price-box">
@@ -127,6 +158,33 @@
     <div class="payment-row">
       <div class="payment-info">•••• •••• •••• 4242</div>
       <button class="change-link">Change</button>
+    </div>
+
+    <div class="demo-toggle-wrap">
+      <div class="demo-label">Prototype demo control — not part of the real product</div>
+      <div class="demo-toggle">
+        <button class="demo-btn active" id="demo-first-time">First time at this rink</button>
+        <button class="demo-btn" id="demo-on-file">Waiver already on file</button>
+      </div>
+    </div>
+
+    <div id="waiver-section">
+      <p class="section-label">Liability waiver — required at this rink</p>
+      <div class="waiver-box">
+        <p class="waiver-text">Apex Ice Arena requires a signed liability waiver before your first
+        session. This covers this rink only — other rinks may have their own separate waiver.</p>
+        <label class="waiver-checkbox-row">
+          <input type="checkbox" id="waiver-check" onchange="updatePayButtonState()">
+          <span>I have read and agree to Apex Ice Arena's liability waiver</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="waiver-on-file" style="display:none">
+      <div class="waiver-onfile-row">
+        <span>✓</span>
+        <span>Waiver on file for Apex Ice Arena since Jul 12, 2026 — no signature needed</span>
+      </div>
     </div>
 
     <div class="policy-box">
@@ -193,9 +251,9 @@
   roleSkater.addEventListener('click', () => setRole('skater'));
   roleGoalie.addEventListener('click', () => setRole('goalie'));
 
-  document.querySelectorAll('.radio-row').forEach(row => {
+  document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(row => {
     row.addEventListener('click', () => {
-      document.querySelectorAll('.radio-row').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
+      document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
       row.classList.add('selected');
       row.setAttribute('aria-checked','true');
     });
@@ -205,6 +263,76 @@
   // Arrive pre-set to Goalie if linked from Session Detail's "Register as Goalie" CTA
   const params = new URLSearchParams(window.location.search);
   if (params.get('role') === 'goalie') setRole('goalie');
+
+  // ── Add a dependent ──
+  const addDependentRow = document.getElementById('add-dependent-row');
+  const dependentForm = document.getElementById('dependent-form');
+  let dependentCount = 0;
+
+  addDependentRow.addEventListener('click', () => {
+    dependentForm.classList.toggle('show');
+  });
+  addDependentRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addDependentRow.click(); } });
+
+  function saveDependent() {
+    const first = document.getElementById('dep-first').value.trim();
+    const last = document.getElementById('dep-last').value.trim();
+    if (!first || !last) { showToast('Enter a first and last name'); return; }
+
+    dependentCount++;
+    const row = document.createElement('div');
+    row.className = 'radio-row';
+    row.tabIndex = 0;
+    row.setAttribute('role', 'radio');
+    row.setAttribute('aria-checked', 'false');
+    row.innerHTML = `<div class="radio-dot"></div><div class="radio-label">${first} ${last} <span style="color:var(--text-dim);font-weight:300">· saved to your account</span></div>`;
+    wireRadioRow(row);
+    document.getElementById('dependent-rows').appendChild(row);
+
+    document.getElementById('dep-first').value = '';
+    document.getElementById('dep-last').value = '';
+    document.getElementById('dep-dob').value = '';
+    dependentForm.classList.remove('show');
+    showToast(`✓ ${first} added — saved under your account for next time`);
+
+    // Select the newly added dependent
+    row.click();
+  }
+
+  function wireRadioRow(row) {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
+      row.classList.add('selected');
+      row.setAttribute('aria-checked','true');
+    });
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); } });
+  }
+
+  // ── Waiver demo toggle ──
+  const demoFirstTime = document.getElementById('demo-first-time');
+  const demoOnFile = document.getElementById('demo-on-file');
+  const waiverSection = document.getElementById('waiver-section');
+  const waiverOnFile = document.getElementById('waiver-on-file');
+
+  function setWaiverState(firstTime) {
+    demoFirstTime.classList.toggle('active', firstTime);
+    demoOnFile.classList.toggle('active', !firstTime);
+    waiverSection.style.display = firstTime ? 'block' : 'none';
+    waiverOnFile.style.display = firstTime ? 'none' : 'block';
+    updatePayButtonState();
+  }
+  demoFirstTime.addEventListener('click', () => setWaiverState(true));
+  demoOnFile.addEventListener('click', () => setWaiverState(false));
+
+  function updatePayButtonState() {
+    const firstTime = demoFirstTime.classList.contains('active');
+    const waiverChecked = document.getElementById('waiver-check').checked;
+    const blocked = firstTime && !waiverChecked;
+    payBtn.disabled = blocked;
+    payBtn.style.opacity = blocked ? '0.5' : '1';
+    payBtn.style.cursor = blocked ? 'not-allowed' : 'pointer';
+  }
+  updatePayButtonState();
 </script>
 </body>
 </html>
