@@ -221,7 +221,7 @@
       </div>
       <div class="price-row"><span class="label">Session price</span><span id="price-session">$12.00</span></div>
       <div class="price-row" id="coupon-row" style="display:none"><span class="label">Coupon (<span id="coupon-code-label"></span>)</span><span id="price-coupon" style="color:var(--green)">-$0.00</span></div>
-      <div class="price-row"><span class="label">Convenience fee</span><span id="price-fee">$0.99</span></div>
+      <div class="price-row"><span class="label">Administrative fee</span><span id="price-fee">$0.99</span></div>
       <div class="price-row" id="donation-row" style="display:none; margin-bottom:0"><span class="label">Donation</span><span id="price-donation">$0.00</span></div>
       <p class="price-note" id="fee-note">Non-refundable — covers payment processing</p>
       <div class="price-divider"></div>
@@ -321,7 +321,7 @@
     roleSkater.classList.toggle('active', !isGoalie);
     roleGoalie.classList.toggle('active', isGoalie);
     goalieBanner.classList.toggle('show', isGoalie);
-    feeNote.textContent = isGoalie ? 'Goalies are never charged a convenience fee' : 'Non-refundable — covers payment processing';
+    feeNote.textContent = isGoalie ? 'Goalies are never charged an administrative fee' : 'Non-refundable — covers payment processing';
     spotsPill.textContent = isGoalie ? '2 of 4 goalie spots open' : '6 spots left';
     spotsPill.style.background = isGoalie ? 'rgba(74,222,128,0.14)' : 'rgba(251,191,36,0.14)';
     spotsPill.style.color = isGoalie ? 'var(--green)' : 'var(--amber)';

@@ -194,7 +194,7 @@
       <p class="disclosure-text" id="disc-text">
         This session is currently full, so cancelling opens your spot to <strong>8 people on the
         waitlist</strong>. Because someone else can immediately take it, <strong>you'll be
-        refunded the $12.00 session price right away.</strong> The $0.99 convenience fee is never
+        refunded the $12.00 session price right away.</strong> The $0.99 administrative fee is never
         refunded.
       </p>
       <div class="disclosure-actions">
@@ -269,7 +269,7 @@
   function updateDisclosureCopy() {
     if (sessionFull) {
       discTitle.textContent = "You'll be refunded right away";
-      discText.innerHTML = `This session is currently full, so cancelling opens your spot to <strong>8 people on the waitlist</strong>. Because someone else can immediately take it, <strong>you'll be refunded the $12.00 session price right away.</strong> The $0.99 convenience fee is never refunded.`;
+      discText.innerHTML = `This session is currently full, so cancelling opens your spot to <strong>8 people on the waitlist</strong>. Because someone else can immediately take it, <strong>you'll be refunded the $12.00 session price right away.</strong> The $0.99 administrative fee is never refunded.`;
     } else {
       discTitle.textContent = "You won't be refunded right now — but you might be later";
       discText.innerHTML = `This session isn't full, so nobody can immediately take your spot. <strong>You won't be refunded the $12.00 session price today.</strong> If the session fills up at any point before it starts, your refund triggers automatically then. If it never fills, the charge is final. The $0.99 fee is never refunded, in either case.`;
