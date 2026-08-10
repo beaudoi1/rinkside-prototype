@@ -187,6 +187,12 @@
     color: var(--accent-purple); font-size: 11px; font-weight: 500;
     padding: 5px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
   }
+  .checkin-btn-small {
+    background: var(--accent); border: none; color: var(--rink-dark);
+    font-size: 11.5px; font-weight: 700; font-family: var(--font-body);
+    padding: 9px 16px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; cursor: pointer;
+  }
+  .checkin-btn-small:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* ── TEAM LIST ROWS ── */
   .teams-list {
@@ -641,7 +647,7 @@
         <div class="next-game-name">vs. Ice Hawks</div>
         <div class="next-game-time">Sat Jun 14 · South Suburban · 8:00 PM</div>
       </div>
-      <div class="next-game-pill">Sat</div>
+      <button class="checkin-btn-small" onclick="event.stopPropagation(); window.location.href='rinkside-game-detail.html?homeaway=away'">Check-in</button>
     </div>
   </div>
 
@@ -1055,7 +1061,7 @@
 
   // ── Static handlers ──
   document.getElementById('avatar').addEventListener('click', () => window.location.href = 'rinkside-profile.html');
-  document.getElementById('hero-card').addEventListener('click', () => window.location.href = 'rinkside-manage-booking.html');
+  document.getElementById('hero-card').addEventListener('click', () => window.location.href = 'rinkside-team-profile.html');
   document.getElementById('hero-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('hero-card').click(); });
   document.getElementById('full-roster-btn').addEventListener('click', e => { e.stopPropagation(); showToast('👥 Viewing full roster…'); });
   document.getElementById('full-schedule-btn').addEventListener('click', e => { e.stopPropagation(); showToast('📅 Viewing full schedule…'); });

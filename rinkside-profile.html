@@ -121,6 +121,14 @@
   .kid-age  { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
   .add-kid-btn { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--accent); background: none; border: 1px dashed rgba(56,189,248,0.25); border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s, background 0.15s; width: 100%; justify-content: center; }
   .add-kid-btn:hover { border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.04); }
+  .dep-manage-panel { display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; }
+  .dep-manage-panel.show { display: block; }
+  .dep-manage-input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 12.5px; margin-bottom: 10px; }
+  .dep-manage-input::placeholder { color: var(--text-dim); }
+  .dep-manage-actions { display: flex; gap: 8px; }
+  .dep-manage-remove { flex: 1; padding: 10px; border-radius: 8px; background: none; border: 1.5px solid rgba(248,113,113,0.4); color: #f87171; font-weight: 600; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
+  .dep-manage-save { flex: 1; padding: 10px; border-radius: 8px; background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
+  .dep-field-label { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
   .accordion-label { font-size: 14px; font-weight: 500; }
   .accordion-sub   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
   .accordion-chevron { color: var(--text-dim); transition: transform 0.22s ease; flex-shrink: 0; }
@@ -152,6 +160,10 @@
   .channel-chip { padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border-mid); background: none; color: var(--text-muted); font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
   .channel-chip.active { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); }
   .channel-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .edit-row-input { flex: 1; background: var(--rink-panel); border: 1.5px solid var(--accent); border-radius: 6px; padding: 6px 10px; color: var(--text-primary); font-family: var(--font-body); font-size: 12px; margin-right: 8px; }
+  .edit-row-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--accent); flex-shrink: 0; }
+  .edit-row-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* ── SIGN OUT ── */
   .signout-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 20px 0; padding: 14px; border-radius: var(--radius); background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); color: #f87171; font-family: var(--font-body); font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; width: calc(100% - 40px); animation: fadeUp 0.4s 0.2s ease both; }
@@ -247,7 +259,7 @@
       </div>
     </div>
     <div class="profile-name">Jordan Rivera</div>
-    <div class="profile-handle">@jordanr · Parker, CO</div>
+    <div class="profile-handle">Parker, CO</div>
     <div class="profile-stats">
       <div class="profile-stat"><div class="profile-stat-val">47</div><div class="profile-stat-label">Sessions</div></div>
       <div class="profile-stat"><div class="profile-stat-val">2</div><div class="profile-stat-label">Teams</div></div>
@@ -287,21 +299,21 @@
       <svg class="accordion-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
     <div class="accordion-panel" id="panel-profile">
-      <div class="sub-row" tabindex="0" data-toast="✏️ Editing full name…">
+      <div class="sub-row" tabindex="0" onclick="startEditRow(this, 'Jordan Rivera')">
         <span class="sub-row-label">Full name</span>
-        <span class="sub-row-value">Jordan Rivera <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <span class="sub-row-value" data-field-value>Jordan Rivera <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
-      <div class="sub-row" tabindex="0" data-toast="✏️ Editing address…">
+      <div class="sub-row" tabindex="0" onclick="startEditRow(this, 'Parker, CO 80134')">
         <span class="sub-row-label">Address</span>
-        <span class="sub-row-value">Parker, CO 80134 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <span class="sub-row-value" data-field-value>Parker, CO 80134 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
-      <div class="sub-row" tabindex="0" data-toast="✏️ Editing email…">
+      <div class="sub-row" tabindex="0" onclick="startEditRow(this, 'jordan.r@email.com')">
         <span class="sub-row-label">Email</span>
-        <span class="sub-row-value">jordan.r@email.com <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <span class="sub-row-value" data-field-value>jordan.r@email.com <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
-      <div class="sub-row" tabindex="0" data-toast="✏️ Editing phone number…">
+      <div class="sub-row" tabindex="0" onclick="startEditRow(this, '+1 (720) 555-0194')">
         <span class="sub-row-label">Phone number</span>
-        <span class="sub-row-value">+1 (720) 555-0194 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <span class="sub-row-value" data-field-value>+1 (720) 555-0194 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
     </div>
 
@@ -456,7 +468,7 @@
     </div>
     <div class="accordion-panel" id="panel-kids">
       <div class="kids-panel-inner">
-        <div class="kid-card" tabindex="0">
+        <div class="kid-card" tabindex="0" data-name="Alex Jr." data-age="8" data-usah="">
           <div class="kid-card-left">
             <div class="kid-avatar">AJ</div>
             <div>
@@ -466,7 +478,7 @@
           </div>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <div class="kid-card" tabindex="0">
+        <div class="kid-card" tabindex="0" data-name="Maya Rivera" data-age="11" data-usah="">
           <div class="kid-card-left">
             <div class="kid-avatar">MR</div>
             <div>
@@ -476,10 +488,36 @@
           </div>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+
+        <div class="dep-manage-panel" id="dep-manage-panel">
+          <p class="dep-field-label">First &amp; last name</p>
+          <input type="text" class="dep-manage-input" id="dep-manage-name">
+          <p class="dep-field-label">Date of birth</p>
+          <input type="date" class="dep-manage-input" id="dep-manage-dob" aria-label="Date of birth">
+          <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
+          <input type="text" class="dep-manage-input" id="dep-manage-usah" placeholder="e.g. 12345678">
+          <div class="dep-manage-actions">
+            <button class="dep-manage-remove" onclick="removeDependent()">Remove profile</button>
+            <button class="dep-manage-save" onclick="saveDependentEdit()">Save changes</button>
+          </div>
+        </div>
+
         <button class="add-kid-btn" id="add-kid-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add a kid's profile
         </button>
+
+        <div class="dep-manage-panel" id="dep-add-panel">
+          <p class="dep-field-label">First name</p>
+          <input type="text" class="dep-manage-input" id="dep-add-first" placeholder="First name">
+          <p class="dep-field-label">Last name</p>
+          <input type="text" class="dep-manage-input" id="dep-add-last" placeholder="Last name">
+          <p class="dep-field-label">Date of birth</p>
+          <input type="date" class="dep-manage-input" id="dep-add-dob" aria-label="Date of birth">
+          <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
+          <input type="text" class="dep-manage-input" id="dep-add-usah" placeholder="e.g. 12345678">
+          <button class="dep-manage-save" style="width:100%" onclick="addNewDependent()">Save new profile</button>
+        </div>
       </div>
     </div>
 
@@ -511,6 +549,51 @@
     t.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── Real inline editing for Profile Info fields. Account Info fields (password, payment,
+  // auto-pay, subscription) deliberately keep their existing "Change"/"Manage" pattern instead —
+  // those need their own dedicated flows (a password field shouldn't become plain visible text,
+  // a payment method needs a real card form), so converting them to this same inline-text
+  // pattern would be worse UX, not more complete. ──
+  function startEditRow(row, currentValue) {
+    if (row.querySelector('.edit-row-input')) return; // already editing
+    const valueSpan = row.querySelector('[data-field-value]');
+    const label = row.querySelector('.sub-row-label').textContent;
+    row.onclick = null;
+
+    const input = document.createElement('input');
+    input.className = 'edit-row-input';
+    input.value = currentValue;
+    input.setAttribute('aria-label', `Edit ${label}`);
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'edit-row-btn';
+    saveBtn.innerHTML = '✓';
+    saveBtn.setAttribute('aria-label', 'Save');
+    saveBtn.onclick = (e) => { e.stopPropagation(); finishEditRow(row, valueSpan, input.value, label); };
+
+    valueSpan.replaceWith(input);
+    input.after(saveBtn);
+    input.focus();
+    input.select();
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); finishEditRow(row, valueSpan, input.value, label); }
+      if (e.key === 'Escape') { finishEditRow(row, valueSpan, currentValue, label); }
+    });
+  }
+
+  function finishEditRow(row, originalSpan, newValue, label) {
+    const input = row.querySelector('.edit-row-input');
+    const btn = row.querySelector('.edit-row-btn');
+    if (!input) return;
+    const chevronSvg = originalSpan.querySelector('svg').outerHTML;
+    originalSpan.innerHTML = `${newValue} ${chevronSvg}`;
+    input.replaceWith(originalSpan);
+    btn.remove();
+    row.onclick = () => startEditRow(row, newValue);
+    showToast(`✓ ${label} updated`);
   }
 
   // ── Accordion setup ──
@@ -569,15 +652,78 @@
   });
   updatePositionSub();
 
-  // ── Kids profile cards ──
+  // ── Kids profile cards — real management panel, not a toast ──
+  let activeDepCard = null;
   document.querySelectorAll('.kid-card').forEach(card => {
     card.addEventListener('click', () => {
-      const name = card.querySelector('.kid-name').textContent;
-      showToast(`👦 Editing ${name}'s profile…`);
+      document.getElementById('dep-add-panel').classList.remove('show');
+      activeDepCard = card;
+      document.getElementById('dep-manage-name').value = card.dataset.name;
+      document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
+      const panel = document.getElementById('dep-manage-panel');
+      // Move the panel right after whichever card was tapped
+      card.after(panel);
+      panel.classList.add('show');
     });
     card.addEventListener('keydown', e => { if (e.key === 'Enter') card.click(); });
   });
-  document.getElementById('add-kid-btn').addEventListener('click', () => showToast('➕ Adding a new kid profile…'));
+
+  function saveDependentEdit() {
+    if (!activeDepCard) return;
+    const newName = document.getElementById('dep-manage-name').value.trim();
+    if (!newName) { showToast('Enter a name'); return; }
+    activeDepCard.dataset.name = newName;
+    activeDepCard.dataset.usah = document.getElementById('dep-manage-usah').value.trim();
+    activeDepCard.querySelector('.kid-name').textContent = newName;
+    document.getElementById('dep-manage-panel').classList.remove('show');
+    showToast(`✓ ${newName}'s profile updated`);
+  }
+
+  function removeDependent() {
+    if (!activeDepCard) return;
+    const name = activeDepCard.dataset.name;
+    document.getElementById('dep-manage-panel').classList.remove('show');
+    activeDepCard.remove();
+    showToast(`${name}'s profile removed`);
+  }
+
+  document.getElementById('add-kid-btn').addEventListener('click', () => {
+    document.getElementById('dep-manage-panel').classList.remove('show');
+    document.getElementById('dep-add-panel').classList.toggle('show');
+  });
+
+  function addNewDependent() {
+    const first = document.getElementById('dep-add-first').value.trim();
+    const last = document.getElementById('dep-add-last').value.trim();
+    if (!first || !last) { showToast('Enter a first and last name'); return; }
+
+    const card = document.createElement('div');
+    card.className = 'kid-card';
+    card.tabIndex = 0;
+    card.dataset.name = `${first} ${last}`;
+    card.dataset.age = '';
+    card.dataset.usah = document.getElementById('dep-add-usah').value.trim();
+    const initials = (first[0] + (last[0] || '')).toUpperCase();
+    card.innerHTML = `<div class="kid-card-left"><div class="kid-avatar">${initials}</div><div><div class="kid-name">${first} ${last}</div><div class="kid-age">New profile</div></div></div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>`;
+    card.addEventListener('click', () => {
+      document.getElementById('dep-add-panel').classList.remove('show');
+      activeDepCard = card;
+      document.getElementById('dep-manage-name').value = card.dataset.name;
+      document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
+      const panel = document.getElementById('dep-manage-panel');
+      card.after(panel);
+      panel.classList.add('show');
+    });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter') card.click(); });
+
+    document.getElementById('add-kid-btn').before(card);
+    document.getElementById('dep-add-first').value = '';
+    document.getElementById('dep-add-last').value = '';
+    document.getElementById('dep-add-dob').value = '';
+    document.getElementById('dep-add-usah').value = '';
+    document.getElementById('dep-add-panel').classList.remove('show');
+    showToast(`✓ ${first} added — saved to your account`);
+  }
 
   // ── Achievements ──
   document.querySelectorAll('.achievement-chip').forEach(chip => {

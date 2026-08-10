@@ -78,6 +78,21 @@
   .donation-chip { flex: 1; padding: 9px 0; border-radius: 999px; border: 1.5px solid var(--border-mid); background: none; color: var(--text-muted); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
   .donation-chip.active { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); }
   .donation-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.show { display: flex; }
+  .modal-card { background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 22px; width: 100%; max-width: 320px; }
+  .modal-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .modal-input-row { display: flex; align-items: center; background: var(--rink-mid); border: 1.5px solid var(--border-mid); border-radius: var(--radius-sm); padding: 4px 14px; margin-bottom: 18px; }
+  .modal-dollar { font-size: 16px; color: var(--text-muted); margin-right: 4px; }
+  .modal-input { flex: 1; background: none; border: none; color: var(--text-primary); font-family: var(--font-body); font-size: 16px; padding: 10px 0; }
+  .modal-input:focus { outline: none; }
+  .modal-input::-webkit-outer-spin-button, .modal-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); }
+  .modal-btn.cancel { background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); }
+  .modal-btn.confirm { background: var(--accent); border: none; color: var(--rink-dark); }
+  .modal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .goalie-banner { display: none; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: var(--green); }
   .goalie-banner.show { display: block; }
 
@@ -104,6 +119,15 @@
   .dep-save-btn { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent); color: var(--rink-dark); border: none; font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); }
   .dep-hint { font-size: 10px; color: var(--text-dim); font-weight: 300; margin: -4px 0 10px; line-height: 1.4; }
   .dep-save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .dep-toggle { display: flex; background: var(--rink-panel); border-radius: 999px; padding: 3px; margin-bottom: 14px; }
+  .dep-toggle-btn { flex: 1; text-align: center; padding: 8px 0; border-radius: 999px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); font-family: var(--font-body); }
+  .dep-toggle-btn.active { background: var(--accent); color: var(--rink-dark); }
+  .dep-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dep-panel { display: none; }
+  .dep-panel.active { display: block; }
+  .dep-field-label { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .existing-dep-row { margin-bottom: 0; }
 
   .demo-toggle-wrap { background: rgba(167,139,250,0.08); border: 1px dashed rgba(167,139,250,0.4); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
   .demo-label { font-size: 10px; font-weight: 700; color: #a78bfa; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
@@ -156,6 +180,36 @@
   /* ============ END RESPONSIVE SIDEBAR ============ */
 
 <!-- RESPONSIVE-INJECTED -->
+
+  /* ── BOTTOM NAV (added for mobile consistency with task screens) ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    background: rgba(11,24,36,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border, rgba(56,189,248,0.12));
+    padding: 10px 0 20px;
+    display: flex; z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px 0;
+    transition: opacity 0.15s; text-decoration: none;
+  }
+  .nav-item:hover { opacity: 0.8; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 9px; font-weight: 400; }
+  .nav-item.active svg { stroke: var(--accent, #38bdf8); }
+  .nav-item.active span { color: var(--accent, #38bdf8); font-weight: 500; }
+  .nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
+  .nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
+  .nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; border-radius: 6px; }
+  @media (min-width: 768px) { .bottom-nav { display: none !important; } }
+
+<!-- BOTTOM-NAV-INJECTED -->
 </style>
 </head>
 <body>
@@ -171,7 +225,7 @@
 <div class="page">
 
   <div class="topbar">
-    <a class="back-btn" href="rinkside-explore.html?view=activities" aria-label="Back to Explore">
+    <a class="back-btn" href="rinkside-explore.html?view=activities" aria-label="Back to Explore" onclick="if(window.history.length>1){history.back();return false;}">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </a>
     <h1>Checkout</h1>
@@ -203,13 +257,31 @@
     </div>
 
     <div class="dependent-form" id="dependent-form">
-      <p class="section-label" style="margin-top:16px">New dependent</p>
-      <input type="text" class="dep-input" id="dep-first" placeholder="First name">
-      <input type="text" class="dep-input" id="dep-last" placeholder="Last name">
-      <input type="date" class="dep-input" id="dep-dob" aria-label="Date of birth">
-      <input type="text" class="dep-input" id="dep-usah" placeholder="USA Hockey # (if applicable)">
-      <p class="dep-hint">Only needed for USA Hockey–sanctioned leagues — see the note on your dependent's profile if unsure.</p>
-      <button class="dep-save-btn" onclick="saveDependent()">Save &amp; Select</button>
+      <div class="dep-toggle">
+        <button class="dep-toggle-btn active" id="dep-toggle-existing" onclick="showDepPanel('existing')">Existing dependents</button>
+        <button class="dep-toggle-btn" id="dep-toggle-new" onclick="showDepPanel('new')">+ New dependent</button>
+      </div>
+
+      <div class="dep-panel active" id="dep-panel-existing">
+        <div class="radio-row existing-dep-row" tabindex="0" role="radio" aria-checked="false" onclick="selectExistingDependent(this, 'Emma Rivera')">
+          <div class="radio-dot"></div>
+          <div class="radio-label">Emma Rivera <span style="color:var(--text-dim);font-weight:300">· Age 8 · saved to your account</span></div>
+        </div>
+        <p class="dep-hint" style="margin-top:6px">Don't see who you're looking for? Switch to "+ New dependent" above.</p>
+      </div>
+
+      <div class="dep-panel" id="dep-panel-new">
+        <p class="dep-field-label">First name</p>
+        <input type="text" class="dep-input" id="dep-first" placeholder="First name">
+        <p class="dep-field-label">Last name</p>
+        <input type="text" class="dep-input" id="dep-last" placeholder="Last name">
+        <p class="dep-field-label">Date of birth</p>
+        <input type="date" class="dep-input" id="dep-dob" aria-label="Date of birth">
+        <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
+        <input type="text" class="dep-input" id="dep-usah" placeholder="e.g. 12345678">
+        <p class="dep-hint">Only needed for USA Hockey–sanctioned leagues — see the note on your dependent's profile if unsure.</p>
+        <button class="dep-save-btn" onclick="saveDependent()">Save &amp; Select</button>
+      </div>
     </div>
 
     <div style="margin-bottom:8px"></div>
@@ -247,6 +319,7 @@
         <button class="donation-chip" onclick="setDonation(1, this)">$1</button>
         <button class="donation-chip" onclick="setDonation(3, this)">$3</button>
         <button class="donation-chip" onclick="setDonation(5, this)">$5</button>
+        <button class="donation-chip" onclick="setCustomDonation(this)">Custom</button>
       </div>
     </div>
 
@@ -292,6 +365,28 @@
 
   </div>
 </div>
+
+<div class="modal-backdrop" id="custom-donation-backdrop" onclick="closeCustomDonation(event)">
+  <div class="modal-card">
+    <p class="modal-title">Custom donation amount</p>
+    <div class="modal-input-row">
+      <span class="modal-dollar">$</span>
+      <input type="number" class="modal-input" id="custom-donation-input" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeCustomDonation()">Cancel</button>
+      <button class="modal-btn confirm" onclick="confirmCustomDonation()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+  <a class="nav-item" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+  <a class="nav-item active" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved Rinks</span></a>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -357,6 +452,33 @@
     state.donation = amount;
     document.querySelectorAll('.donation-chip').forEach(chip => chip.classList.remove('active'));
     btn.classList.add('active');
+    recalcTotal();
+  }
+
+  // ── Custom donation modal ──
+  let customDonationBtn = null;
+  function setCustomDonation(btn) {
+    customDonationBtn = btn;
+    document.getElementById('custom-donation-input').value = state.donation > 0 && ![0,1,3,5].includes(state.donation) ? state.donation : '';
+    document.getElementById('custom-donation-backdrop').classList.add('show');
+    document.getElementById('custom-donation-input').focus();
+  }
+  function closeCustomDonation(e) {
+    if (e && e.target !== document.getElementById('custom-donation-backdrop')) return;
+    document.getElementById('custom-donation-backdrop').classList.remove('show');
+  }
+  function confirmCustomDonation() {
+    const input = document.getElementById('custom-donation-input');
+    const val = parseFloat(input.value);
+    if (isNaN(val) || val < 0) {
+      input.focus();
+      return;
+    }
+    document.querySelectorAll('.donation-chip').forEach(chip => chip.classList.remove('active'));
+    customDonationBtn.classList.add('active');
+    customDonationBtn.textContent = val > 0 ? `$${val.toFixed(2)}` : 'Custom';
+    state.donation = val;
+    document.getElementById('custom-donation-backdrop').classList.remove('show');
     recalcTotal();
   }
 
@@ -428,6 +550,23 @@
     dependentForm.classList.toggle('show');
   });
   addDependentRow.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addDependentRow.click(); } });
+
+  function showDepPanel(panel) {
+    document.getElementById('dep-toggle-existing').classList.toggle('active', panel === 'existing');
+    document.getElementById('dep-toggle-new').classList.toggle('active', panel === 'new');
+    document.getElementById('dep-panel-existing').classList.toggle('active', panel === 'existing');
+    document.getElementById('dep-panel-new').classList.toggle('active', panel === 'new');
+  }
+
+  function selectExistingDependent(row, name) {
+    document.querySelectorAll('.existing-dep-row').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked', 'false'); });
+    row.classList.add('selected');
+    row.setAttribute('aria-checked', 'true');
+    document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked', 'false'); });
+    row.classList.add('selected');
+    dependentForm.classList.remove('show');
+    showToast(`✓ ${name} selected`);
+  }
 
   function saveDependent() {
     const first = document.getElementById('dep-first').value.trim();

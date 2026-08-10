@@ -179,8 +179,8 @@
   </header>
 
   <div class="view-toggle">
-    <button class="toggle-btn" id="toggle-rinks">Rinks</button>
     <button class="toggle-btn active" id="toggle-activities">Activities</button>
+    <button class="toggle-btn" id="toggle-rinks">Rinks</button>
   </div>
 
   <div class="search-bar">
@@ -300,13 +300,12 @@
 
   // FR-40: Tier 1 (partner) rinks route to Rinkside's own Checkout — there's a real data
   // relationship to book against. Tier 3 (non-partner, unconfirmed) rinks have no such
-  // relationship, so the CTA routes externally to the rink's own registration page instead.
-  // This is a structurally different path, not a degraded version of the same one — shown here
-  // with distinct messaging rather than actually leaving the prototype, so the concept is clear
-  // without breaking the demo experience.
+  // relationship, so the CTA routes to the unaffiliated rink profile, which itself routes
+  // externally to the rink's own registration page — a structurally different path, not a
+  // degraded version of the same one.
   function handleRinkTap(tier, rinkName) {
     if (tier === 'unconfirmed') {
-      showToast(`🔗 Opening ${rinkName}'s own site — no Rinkside booking relationship yet`);
+      window.location.href = 'rinkside-rink-profile-unaffiliated.html';
     } else {
       window.location.href = 'rinkside-checkout.html';
     }

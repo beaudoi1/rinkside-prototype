@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — The Ice Ranch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+    --green:#4ade80; --amber:#fbbf24; --red:#f87171;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+
+  .hero-banner { height: 140px; background: linear-gradient(135deg, #16283a, #1b3550); border-bottom: 1px solid var(--border-mid); display: flex; align-items: flex-end; padding: 20px; position: relative; }
+  .hero-banner::after { content: '🏒'; position: absolute; top: 16px; right: 20px; font-size: 32px; opacity: 0.4; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(11,24,36,0.6); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; position: absolute; top: 20px; left: 20px; }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rink-name { font-family: var(--font-display); font-size: 24px; font-weight: 800; }
+
+  .content { padding: 20px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+
+  .unconfirmed-banner { display: flex; gap: 10px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; }
+  .unconfirmed-icon { font-size: 16px; flex-shrink: 0; }
+  .unconfirmed-text { font-size: 11.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; }
+  .unconfirmed-text strong { color: var(--amber); }
+
+  .info-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { width: 20px; text-align: center; flex-shrink: 0; opacity: 0.7; }
+  .info-label { color: var(--text-dim); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .info-value { color: var(--text-primary); }
+  .info-value a { color: var(--accent); text-decoration: none; }
+
+  .about-box { background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 16px; margin: 20px 0; font-size: 12.5px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+
+  .save-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; border-radius: var(--radius-sm); background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); font-weight: 600; font-size: 13px; cursor: pointer; font-family: var(--font-body); margin-bottom: 24px; }
+  .save-btn.saved { border-color: var(--red); color: var(--red); }
+  .save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .session-card { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; display: flex; gap: 14px; align-items: center; }
+  .session-card:hover { border-color: var(--border-mid); }
+  .session-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .session-day { text-align: center; flex-shrink: 0; width: 44px; }
+  .session-day-name { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+  .session-day-num { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+  .session-body { flex: 1; min-width: 0; }
+  .session-title { font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
+  .session-time { font-size: 11.5px; color: var(--text-muted); font-weight: 300; }
+  .external-arrow { color: var(--text-dim); font-size: 13px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero-banner">
+    <a class="back-btn" href="rinkside-explore.html?view=rinks" aria-label="Back to Explore" onclick="if(window.history.length>1){history.back();return false;}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <div class="rink-name">The Ice Ranch</div>
+  </div>
+
+  <div class="content">
+
+    <div class="unconfirmed-banner">
+      <span class="unconfirmed-icon">⚠️</span>
+      <p class="unconfirmed-text"><strong>Not a Rinkside partner.</strong> This rink's schedule isn't confirmed by the rink itself — info here is compiled from public sources and may be out of date. Booking happens on their own site, not through Rinkside.</p>
+    </div>
+
+    <button class="save-btn" id="save-btn" onclick="toggleSave()">
+      <span id="save-icon">♡</span> <span id="save-text">Save this rink</span>
+    </button>
+
+    <p class="section-label">Rink details</p>
+    <div class="info-row">
+      <span class="info-icon">📍</span>
+      <div><div class="info-label">Address</div><div class="info-value">9585 Heritage Hills Cir, Lone Tree, CO <a href="https://maps.google.com/?q=The+Ice+Ranch+Lone+Tree+CO" target="_blank" rel="noopener">· Get directions</a></div></div>
+    </div>
+    <div class="info-row">
+      <span class="info-icon">🌐</span>
+      <div><div class="info-label">Website</div><div class="info-value"><a href="#" target="_blank" rel="noopener">theicerranch.com</a></div></div>
+    </div>
+    <div class="info-row">
+      <span class="info-icon">📞</span>
+      <div><div class="info-label">Phone</div><div class="info-value"><a href="tel:+13035550100">(303) 555-0100</a></div></div>
+    </div>
+
+    <div class="about-box">
+      The Ice Ranch is an independent rink offering public skate, learn-to-skate, and drop-in
+      hockey. Rinkside doesn't have a booking relationship with this rink yet — tapping a session
+      below takes you to their own site to register.
+    </div>
+
+    <p class="section-label">Upcoming — booking happens on their site</p>
+    <div class="session-card" tabindex="0" onclick="handleExternalTap('Learn to Skate')">
+      <div class="session-day"><div class="session-day-name">Wed</div><div class="session-day-num">12</div></div>
+      <div class="session-body"><div class="session-title">Learn to Skate</div><div class="session-time">9:00 AM</div></div>
+      <span class="external-arrow">↗</span>
+    </div>
+    <div class="session-card" tabindex="0" onclick="handleExternalTap('Pickup Hockey')">
+      <div class="session-day"><div class="session-day-name">Sat</div><div class="session-day-num">15</div></div>
+      <div class="session-body"><div class="session-title">Pickup Hockey</div><div class="session-time">6:00 AM</div></div>
+      <span class="external-arrow">↗</span>
+    </div>
+    <div class="session-card" tabindex="0" onclick="handleExternalTap('Public Skate')">
+      <div class="session-day"><div class="session-day-name">Sun</div><div class="session-day-num">16</div></div>
+      <div class="session-body"><div class="session-title">Public Skate</div><div class="session-time">1:00–3:00 PM</div></div>
+      <span class="external-arrow">↗</span>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--rink-panel);border:1px solid var(--border-mid);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:500;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s, transform 0.2s;max-width:90%;text-align:center;"></div>
+
+<script>
+  let saved = false;
+  function toggleSave() {
+    saved = !saved;
+    document.getElementById('save-btn').classList.toggle('saved', saved);
+    document.getElementById('save-icon').textContent = saved ? '♥' : '♡';
+    document.getElementById('save-text').textContent = saved ? 'Saved' : 'Save this rink';
+  }
+
+  // FR-40: non-partner rink sessions route externally, not into Rinkside Checkout — there's no
+  // real data relationship to book against. Shown here with distinct messaging rather than
+  // actually leaving the prototype, same pattern already used on Explore's Ice Ranch card.
+  let toastTimer;
+  function handleExternalTap(sessionName) {
+    const t = document.getElementById('toast');
+    t.textContent = `↗ Opening ${sessionName} on The Ice Ranch's own site — no Rinkside booking here`;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 3000);
+  }
+</script>
+</body>
+</html>

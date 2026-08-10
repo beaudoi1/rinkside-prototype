@@ -47,6 +47,16 @@
   .session-card { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; display: flex; gap: 14px; align-items: center; }
   .session-card:hover { border-color: var(--border-mid); }
   .session-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .amenity-chip { display: flex; align-items: center; gap: 8px; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11.5px; color: var(--text-primary); font-weight: 500; }
+  .amenity-icon { font-size: 15px; flex-shrink: 0; }
+
+  .rink-filter-tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; }
+  .rink-filter-tab { flex-shrink: 0; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border-mid); background: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+  .rink-filter-tab.active { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); }
+  .rink-filter-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .no-results { text-align: center; font-size: 12.5px; color: var(--text-dim); padding: 20px 0; }
   .session-day { text-align: center; flex-shrink: 0; width: 44px; }
   .session-day-name { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
   .session-day-num { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
@@ -96,6 +106,36 @@
   /* ============ END RESPONSIVE SIDEBAR ============ */
 
 <!-- RESPONSIVE-INJECTED -->
+
+  /* ── BOTTOM NAV (added for mobile consistency with task screens) ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    background: rgba(11,24,36,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border, rgba(56,189,248,0.12));
+    padding: 10px 0 20px;
+    display: flex; z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px 0;
+    transition: opacity 0.15s; text-decoration: none;
+  }
+  .nav-item:hover { opacity: 0.8; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-item span { font-size: 9px; font-weight: 400; }
+  .nav-item.active svg { stroke: var(--accent, #38bdf8); }
+  .nav-item.active span { color: var(--accent, #38bdf8); font-weight: 500; }
+  .nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
+  .nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
+  .nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; border-radius: 6px; }
+  @media (min-width: 768px) { .bottom-nav { display: none !important; } }
+
+<!-- BOTTOM-NAV-INJECTED -->
 </style>
 </head>
 <body>
@@ -111,7 +151,7 @@
 <div class="page">
 
   <div class="hero-banner">
-    <a class="back-btn" href="rinkside-explore.html" aria-label="Back to Explore" style="position:absolute; top:20px; left:20px;">
+    <a class="back-btn" href="rinkside-explore.html" aria-label="Back to Explore" onclick="if(window.history.length>1){history.back();return false;}" style="position:absolute; top:20px; left:20px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </a>
     <div class="rink-name" id="rink-name">Apex Ice Arena</div>
@@ -149,22 +189,51 @@
       youth leagues, and figure skating lessons. On-site skate rental and pro shop available.
     </div>
 
+    <p class="section-label">Amenities</p>
+    <div class="amenities-grid">
+      <div class="amenity-chip"><span class="amenity-icon">🍺</span> On-site bar</div>
+      <div class="amenity-chip"><span class="amenity-icon">🛒</span> Pro shop</div>
+      <div class="amenity-chip"><span class="amenity-icon">🔪</span> Skate sharpening</div>
+      <div class="amenity-chip"><span class="amenity-icon">⛸️</span> Skate rentals</div>
+      <div class="amenity-chip"><span class="amenity-icon">🅿️</span> Free parking</div>
+      <div class="amenity-chip"><span class="amenity-icon">📶</span> Free WiFi</div>
+    </div>
+
     <p class="section-label">Upcoming at this rink</p>
-    <div class="session-card" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+    <div class="rink-filter-tabs">
+      <button class="rink-filter-tab active" onclick="filterSessions('all', this)">All</button>
+      <button class="rink-filter-tab" onclick="filterSessions('hockey', this)">Hockey</button>
+      <button class="rink-filter-tab" onclick="filterSessions('public-skate', this)">Public skate</button>
+      <button class="rink-filter-tab" onclick="filterSessions('lessons', this)">Lessons</button>
+    </div>
+    <div id="rink-sessions-list">
+    <div class="session-card" data-category="hockey" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
       <div class="session-day"><div class="session-day-name">Fri</div><div class="session-day-num">14</div></div>
       <div class="session-body"><div class="session-title">Stick &amp; Puck</div><div class="session-time">9:00–10:30 PM</div></div>
       <span class="session-badge open">6 left</span>
     </div>
-    <div class="session-card" tabindex="0" onclick="window.location.href='rinkside-explore.html'">
+    <div class="session-card" data-category="public-skate" tabindex="0" onclick="window.location.href='rinkside-explore.html'">
       <div class="session-day"><div class="session-day-name">Sat</div><div class="session-day-num">15</div></div>
       <div class="session-body"><div class="session-title">Public Skate — Morning</div><div class="session-time">10:00–11:30 AM</div></div>
       <span class="session-badge open">Open</span>
     </div>
-    <div class="session-card" tabindex="0" onclick="window.location.href='rinkside-explore.html'">
+    <div class="session-card" data-category="lessons" tabindex="0" onclick="window.location.href='rinkside-explore.html'">
       <div class="session-day"><div class="session-day-name">Sun</div><div class="session-day-num">16</div></div>
       <div class="session-body"><div class="session-title">Learn to Skate</div><div class="session-time">9:00 AM</div></div>
       <span class="session-badge low">2 left</span>
     </div>
+    <div class="session-card" data-category="hockey" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+      <div class="session-day"><div class="session-day-name">Mon</div><div class="session-day-num">17</div></div>
+      <div class="session-body"><div class="session-title">Pickup Hockey — Adult</div><div class="session-time">6:00–7:00 AM</div></div>
+      <span class="session-badge open">Open</span>
+    </div>
+    <div class="session-card" data-category="public-skate" tabindex="0" onclick="window.location.href='rinkside-explore.html'">
+      <div class="session-day"><div class="session-day-name">Tue</div><div class="session-day-num">18</div></div>
+      <div class="session-body"><div class="session-title">Public Skate — Evening</div><div class="session-time">7:00–9:00 PM</div></div>
+      <span class="session-badge open">Open</span>
+    </div>
+    </div>
+    <p class="no-results" id="no-results" style="display:none">No sessions match this filter right now.</p>
 
   </div>
 </div>
@@ -176,6 +245,19 @@
     document.getElementById('save-btn').classList.toggle('saved', saved);
     document.getElementById('save-icon').textContent = saved ? '♥' : '♡';
     document.getElementById('save-text').textContent = saved ? 'Saved' : 'Save this rink';
+  }
+
+  function filterSessions(category, btn) {
+    document.querySelectorAll('.rink-filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const cards = document.querySelectorAll('#rink-sessions-list .session-card');
+    let visibleCount = 0;
+    cards.forEach(card => {
+      const matches = category === 'all' || card.dataset.category === category;
+      card.style.display = matches ? 'flex' : 'none';
+      if (matches) visibleCount++;
+    });
+    document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
   }
 
   // Genericized via URL param so Explore's other rink cards route here for real
@@ -216,5 +298,13 @@
     document.getElementById('rink-about').textContent = r.about;
   }
 </script>
+<nav class="bottom-nav" aria-label="Main navigation">
+  <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+  <a class="nav-item" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+  <a class="nav-item active" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved Rinks</span></a>
+</nav>
+
 </body>
 </html>
