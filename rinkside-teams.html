@@ -229,6 +229,12 @@
     animation: fadeUp 0.4s 0.2s ease both;
   }
   .roster-scroll::-webkit-scrollbar { display: none; }
+  @media (min-width: 768px) {
+    .roster-scroll { display: grid; grid-template-columns: repeat(4, 1fr); overflow-x: visible; gap: 12px; }
+  }
+  @media (min-width: 1200px) {
+    .roster-scroll { grid-template-columns: repeat(6, 1fr); }
+  }
   .player-chip {
     flex-shrink: 0; background: var(--rink-panel);
     border: 1px solid var(--border); border-radius: var(--radius);
@@ -355,6 +361,12 @@
   .game-badge-purple { background: rgba(167,139,250,0.12); color: var(--accent-purple); }
   .game-badge-blue { background: rgba(56,189,248,0.12); color: var(--accent); }
   .game-badge-amber { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .jersey-badge {
+    font-size: 10px; font-weight: 600; padding: 3px 9px;
+    border-radius: 999px; margin-left: auto;
+  }
+  .jersey-badge.home { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+  .jersey-badge.away { background: rgba(255,255,255,0.08); color: var(--text-primary); }
   .game-matchup {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-bottom: 8px;
@@ -493,9 +505,58 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.35; }
   }
+
+  /* ============ RESPONSIVE: TABLET/DESKTOP SIDEBAR ============ */
+  :root { --sidebar-w: 220px; }
+  .app-sidebar {
+    display: none;
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--rink-mid, #132233); border-right: 1px solid var(--border-mid, rgba(56,189,248,0.22));
+    flex-direction: column; padding: 24px 0; z-index: 100;
+  }
+  .sidebar-logo {
+    font-family: var(--font-display, 'Syne', sans-serif); font-weight: 800; font-size: 19px;
+    padding: 0 24px 28px; letter-spacing: -0.3px;
+  }
+  .sidebar-logo span { color: var(--accent, #38bdf8); }
+  .sidebar-nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+    text-decoration: none; font-family: var(--font-body, 'DM Sans', sans-serif);
+    font-size: 13.5px; font-weight: 500; border-left: 3px solid transparent;
+  }
+  .sidebar-nav-item svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .sidebar-nav-item.active { border-left-color: var(--accent, #38bdf8); background: rgba(56,189,248,0.06); }
+  .sidebar-nav-item.active svg { stroke: var(--accent, #38bdf8); }
+  .sidebar-nav-item.active span { color: var(--accent, #38bdf8); font-weight: 600; }
+  .sidebar-nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
+  .sidebar-nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
+  .sidebar-nav-item:hover:not(.active) { background: rgba(255,255,255,0.03); }
+  .sidebar-nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: -2px; }
+
+  @media (min-width: 768px) {
+    .app-sidebar { display: flex; }
+    .page { margin-left: var(--sidebar-w); max-width: 680px; }
+    .bottom-nav { display: none !important; }
+    .toast { left: calc(50% + var(--sidebar-w) / 2); }
+  }
+  @media (min-width: 1200px) {
+    .page { max-width: 760px; margin-left: calc(var(--sidebar-w) + (100% - var(--sidebar-w) - 760px) / 2); }
+  }
+  /* ============ END RESPONSIVE SIDEBAR ============ */
+
+<!-- RESPONSIVE-INJECTED -->
 </style>
 </head>
 <body>
+  <nav class="app-sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">Rink<span>side</span></div>
+    <a class="sidebar-nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a class="sidebar-nav-item" href="rinkside-schedule.html" aria-label="Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+    <a class="sidebar-nav-item active" href="rinkside-teams.html" aria-label="Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+    <a class="sidebar-nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+    <a class="sidebar-nav-item" href="rinkside-saved.html" aria-label="Saved"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
+  </nav>
+
 
 <div class="glow-top"></div>
 <div class="glow-bottom"></div>
@@ -753,7 +814,6 @@
   <a class="nav-item active" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
   <a class="nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
   <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
-  <a class="nav-item" href="rinkside-profile.html" aria-label="Profile"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></a>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -786,10 +846,10 @@
         { initials:'+8', name:'More', pos:'players' },
       ],
       games: [
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Ice Hawks', meta:'Sat Jun 14 · South Suburban Sports · Rink B · 8:00 PM' },
-        { type:'practice', typeClass:'practice', badge:'game-badge-blue', badgeTeam:'Apex Wolves', team1:'Team Practice', vs:'', team2:'', meta:'Tue Jun 17 · Apex Ice Arena · Rink A · 6:00 AM' },
-        { type:'scrimmage', typeClass:'scrimmage', badge:'game-badge-amber', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Night Owls', meta:'Sat Jun 21 · Apex Ice Arena · Rink B · 9:00 PM' },
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Blizzard FC', meta:'Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Ice Hawks', meta:'Sat Jun 14 · South Suburban Sports · Rink B · 8:00 PM', homeAway:'away' },
+        { type:'practice', typeClass:'practice', badge:'game-badge-blue', badgeTeam:'Apex Wolves', team1:'Team Practice', vs:'', team2:'', meta:'Tue Jun 17 · Apex Ice Arena · Rink A · 6:00 AM', homeAway:null },
+        { type:'scrimmage', typeClass:'scrimmage', badge:'game-badge-amber', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Night Owls', meta:'Sat Jun 21 · Apex Ice Arena · Rink B · 9:00 PM', homeAway:'home' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Blizzard FC', meta:'Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM', homeAway:'away' },
       ],
       stats: [
         { label:'Goals scored', val:'47', sub:'4.3 per game', highlight:true },
@@ -822,9 +882,9 @@
         { initials:'+4', name:'More', pos:'players' },
       ],
       games: [
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 20 · Apex Ice Arena · Rink A · 6:00 AM' },
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 27 · Apex Ice Arena · Rink A · 6:00 AM' },
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jul 4 · Apex Ice Arena · Rink A · 6:00 AM' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 20 · Apex Ice Arena · Rink A · 6:00 AM', homeAway:'home' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jun 27 · Apex Ice Arena · Rink A · 6:00 AM', homeAway:'away' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Friday Pickups', team1:'Friday Pickups', vs:'4v4', team2:'Open', meta:'Fri Jul 4 · Apex Ice Arena · Rink A · 6:00 AM', homeAway:'home' },
       ],
       stats: [
         { label:'Games played', val:'12', sub:'This season', highlight:false },
@@ -883,6 +943,7 @@
         <div class="game-row-top">
           <span class="game-type ${g.typeClass}">${g.type}</span>
           <span class="game-badge ${g.badge}">${g.badgeTeam}</span>
+          ${g.homeAway ? `<span class="jersey-badge ${g.homeAway}">${g.homeAway === 'home' ? '⬛ Dark' : '⬜ White'}</span>` : ''}
         </div>
         <div class="game-matchup">
           <span class="game-team">${g.team1}</span>
@@ -891,10 +952,16 @@
         <div class="game-meta">${g.meta}</div>
       </div>
     `).join('');
-    gamesList.querySelectorAll('.game-row').forEach(row => {
+    gamesList.querySelectorAll('.game-row').forEach((row, i) => {
+      const eventType = d.games[i].type; // 'game', 'practice', or 'scrimmage'
+      const homeAway = d.games[i].homeAway;
       row.addEventListener('click', () => {
-        const teams = [...row.querySelectorAll('.game-team')].map(t => t.textContent).join(' vs ');
-        showToast(`🏒 Opening ${teams}…`);
+        let dest = 'rinkside-game-detail.html';
+        const params = [];
+        if (eventType === 'practice') params.push('type=practice');
+        if (homeAway) params.push(`homeaway=${homeAway}`);
+        if (params.length) dest += '?' + params.join('&');
+        window.location.href = dest;
       });
     });
 

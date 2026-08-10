@@ -55,6 +55,14 @@
   .terms { font-size: 10.5px; color: var(--text-dim); text-align: center; margin-top: 18px; line-height: 1.5; }
   .login-link { font-size: 12px; color: var(--text-muted); font-weight: 500; text-align: center; margin-top: 24px; }
   .login-link a { color: var(--accent); font-weight: 700; text-decoration: none; }
+
+  /* ============ RESPONSIVE: PRE-AUTH WIDTH CAP ============ */
+  @media (min-width: 768px) {
+    .page { max-width: 480px; margin: 0 auto; }
+  }
+  /* ============ END RESPONSIVE ============ */
+
+<!-- RESPONSIVE-INJECTED -->
 </style>
 </head>
 <body>
@@ -106,6 +114,19 @@
         <button type="button" class="chip">Goalie</button>
       </div>
 
+      <button type="button" class="submit-btn" onclick="goToStep3()">Save &amp; Continue</button>
+      <button type="button" class="skip-link" onclick="goToStep3()">Skip for now</button>
+    </div>
+
+    <div class="step" id="step3">
+      <p class="step2-note">Last thing — what matters most to you in the app? This decides what shows up first on your Home screen. You can change this anytime later.</p>
+
+      <div class="chip-grid" id="priority-chips">
+        <button type="button" class="chip" data-preset="league">I play on a team or league</button>
+        <button type="button" class="chip" data-preset="casual">I mostly play drop-in / casual</button>
+        <button type="button" class="chip" data-preset="parent">I'm booking for my kids</button>
+      </div>
+
       <button type="button" class="submit-btn" onclick="finishSignup()">Save &amp; Continue</button>
       <button type="button" class="skip-link" onclick="finishSignup()">Skip for now</button>
     </div>
@@ -148,7 +169,25 @@
     });
   });
 
+  function goToStep3() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.add('active');
+    document.querySelector('.topbar h1').textContent = 'Home Layout';
+  }
+
+  let selectedPreset = null;
+  document.querySelectorAll('#priority-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#priority-chips .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      selectedPreset = chip.dataset.preset;
+    });
+  });
+
   function finishSignup() {
+    if (selectedPreset) {
+      localStorage.setItem('rinkside-home-layout', selectedPreset);
+    }
     window.location.href = 'rinkside-home.html';
   }
 </script>

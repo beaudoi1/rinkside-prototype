@@ -50,6 +50,14 @@
   .divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 22px; }
   .divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border-mid); }
   .divider span { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+  /* ============ RESPONSIVE: PRE-AUTH WIDTH CAP ============ */
+  @media (min-width: 768px) {
+    .page { max-width: 480px; margin: 0 auto; }
+  }
+  /* ============ END RESPONSIVE ============ */
+
+<!-- RESPONSIVE-INJECTED -->
 </style>
 </head>
 <body>

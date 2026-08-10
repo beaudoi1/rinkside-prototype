@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Game Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+    --green:#4ade80; --amber:#fbbf24; --red:#f87171;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+
+  .content { padding: 20px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+
+  .event-type-badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 4px 11px; border-radius: 999px; margin-bottom: 14px; }
+  .event-type-badge.game { background: rgba(167,139,250,0.14); color: var(--accent-purple); }
+  .event-type-badge.practice { background: rgba(56,189,248,0.14); color: var(--accent); }
+
+  .matchup-card { background: linear-gradient(135deg, #16283a, #182f42); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; text-align: center; }
+  .matchup-teams { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; }
+  .matchup-team { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+  .matchup-vs { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+  .matchup-sub { font-size: 12.5px; color: var(--text-muted); font-weight: 300; }
+
+  .info-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { width: 20px; text-align: center; flex-shrink: 0; opacity: 0.7; }
+  .info-label { color: var(--text-dim); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .info-value { color: var(--text-primary); }
+  .info-value a { color: var(--accent); text-decoration: none; }
+
+  .rsvp-box { background: var(--rink-mid); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 18px; margin: 20px 0; }
+  .rsvp-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .rsvp-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+  .rsvp-btn { flex: 1; padding: 13px; border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); border: 1.5px solid var(--border-mid); background: none; color: var(--text-primary); }
+  .rsvp-btn.in.active { background: var(--green); border-color: var(--green); color: var(--rink-dark); }
+  .rsvp-btn.out.active { background: var(--red); border-color: var(--red); color: var(--rink-dark); }
+  .rsvp-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .rsvp-counts { display: flex; justify-content: space-between; font-size: 12px; }
+  .rsvp-count { text-align: center; flex: 1; }
+  .rsvp-count-num { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+  .rsvp-count-num.in { color: var(--green); }
+  .rsvp-count-num.out { color: var(--red); }
+  .rsvp-count-num.unknown { color: var(--text-dim); }
+  .rsvp-count-label { color: var(--text-muted); font-size: 10.5px; margin-top: 2px; }
+
+  .practice-note { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 20px; font-size: 11.5px; color: var(--text-muted); font-weight: 300; }
+
+  .homeaway-badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 4px 12px; border-radius: 999px; margin-bottom: 12px; background: rgba(255,255,255,0.1); color: var(--text-primary); letter-spacing: 0.03em; }
+
+  .jersey-box { display: flex; align-items: center; gap: 12px; background: var(--rink-mid); border: 1.5px solid var(--border-mid); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; }
+  .jersey-icon { font-size: 26px; flex-shrink: 0; }
+  .jersey-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; }
+  .jersey-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 1px; }
+
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; max-width: 90%; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ============ RESPONSIVE: TABLET/DESKTOP SIDEBAR ============ */
+  :root { --sidebar-w: 220px; }
+  .app-sidebar {
+    display: none;
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--rink-mid, #132233); border-right: 1px solid var(--border-mid, rgba(56,189,248,0.22));
+    flex-direction: column; padding: 24px 0; z-index: 100;
+  }
+  .sidebar-logo {
+    font-family: var(--font-display, 'Syne', sans-serif); font-weight: 800; font-size: 19px;
+    padding: 0 24px 28px; letter-spacing: -0.3px;
+  }
+  .sidebar-logo span { color: var(--accent, #38bdf8); }
+  .sidebar-nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+    text-decoration: none; font-family: var(--font-body, 'DM Sans', sans-serif);
+    font-size: 13.5px; font-weight: 500; border-left: 3px solid transparent;
+  }
+  .sidebar-nav-item svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .sidebar-nav-item.active { border-left-color: var(--accent, #38bdf8); background: rgba(56,189,248,0.06); }
+  .sidebar-nav-item.active svg { stroke: var(--accent, #38bdf8); }
+  .sidebar-nav-item.active span { color: var(--accent, #38bdf8); font-weight: 600; }
+  .sidebar-nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
+  .sidebar-nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
+  .sidebar-nav-item:hover:not(.active) { background: rgba(255,255,255,0.03); }
+  .sidebar-nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: -2px; }
+
+  @media (min-width: 768px) {
+    .app-sidebar { display: flex; }
+    .page { margin-left: var(--sidebar-w); max-width: 680px; }
+    .bottom-nav { display: none !important; }
+    .toast { left: calc(50% + var(--sidebar-w) / 2); }
+  }
+  @media (min-width: 1200px) {
+    .page { max-width: 760px; margin-left: calc(var(--sidebar-w) + (100% - var(--sidebar-w) - 760px) / 2); }
+  }
+  /* ============ END RESPONSIVE SIDEBAR ============ */
+
+<!-- RESPONSIVE-INJECTED -->
+</style>
+</head>
+<body>
+  <nav class="app-sidebar" aria-label="Main navigation">
+    <div class="sidebar-logo">Rink<span>side</span></div>
+    <a class="sidebar-nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+    <a class="sidebar-nav-item" href="rinkside-schedule.html" aria-label="Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
+    <a class="sidebar-nav-item active" href="rinkside-teams.html" aria-label="Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
+    <a class="sidebar-nav-item" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
+    <a class="sidebar-nav-item" href="rinkside-saved.html" aria-label="Saved"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
+  </nav>
+
+<div class="page">
+
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-teams.html" aria-label="Back to Teams">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1>Game Detail</h1>
+  </div>
+
+  <div class="content">
+
+    <span class="event-type-badge game" id="type-badge">Game</span>
+
+    <div class="matchup-card">
+      <span class="homeaway-badge" id="homeaway-badge">Away</span>
+      <div class="matchup-teams">
+        <span class="matchup-team">Apex Wolves</span>
+        <span class="matchup-vs">vs</span>
+        <span class="matchup-team">Ice Hawks</span>
+      </div>
+      <div class="matchup-sub">Saturday, June 14 · 8:00 PM</div>
+    </div>
+
+    <div class="jersey-box" id="jersey-box">
+      <span class="jersey-icon">⬜</span>
+      <div>
+        <div class="jersey-title">Wear White</div>
+        <div class="jersey-sub">You're the away team for this game</div>
+      </div>
+    </div>
+
+    <p class="section-label">Details</p>
+    <div class="info-row">
+      <span class="info-icon">📍</span>
+      <div><div class="info-label">Venue</div><div class="info-value">South Suburban Sports Complex — Rink B <a href="https://maps.google.com/?q=South+Suburban+Sports+Complex" target="_blank" rel="noopener">· Directions</a></div></div>
+    </div>
+    <div class="info-row">
+      <span class="info-icon">🕐</span>
+      <div><div class="info-label">Time</div><div class="info-value">8:00 PM – 9:30 PM</div></div>
+    </div>
+    <div class="info-row">
+      <span class="info-icon">🏒</span>
+      <div><div class="info-label">Team</div><div class="info-value">Apex Wolves · Adult Hockey D2</div></div>
+    </div>
+
+    <div class="practice-note" id="away-note">
+      Different rinks can have different check-in processes — some use a check-in list, some
+      don't require anything at all. If this venue is new to you, it's worth checking Manage
+      Booking beforehand rather than assuming it works like your usual rink.
+    </div>
+
+    <div class="rsvp-box">
+      <p class="rsvp-title">Are you in?</p>
+      <div class="rsvp-buttons">
+        <button class="rsvp-btn in" id="rsvp-in" onclick="setRsvp('in')">I'm in</button>
+        <button class="rsvp-btn out" id="rsvp-out" onclick="setRsvp('out')">I'm out</button>
+      </div>
+      <div class="rsvp-counts">
+        <div class="rsvp-count"><div class="rsvp-count-num in" id="count-in">12</div><div class="rsvp-count-label">In</div></div>
+        <div class="rsvp-count"><div class="rsvp-count-num out" id="count-out">3</div><div class="rsvp-count-label">Out</div></div>
+        <div class="rsvp-count"><div class="rsvp-count-num unknown" id="count-unknown">3</div><div class="rsvp-count-label">Unknown</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  let counts = { in: 12, out: 3, unknown: 3 };
+  let myRsvp = null; // null = still in the "unknown" bucket
+
+  function setRsvp(choice) {
+    // Remove previous vote from its bucket
+    if (myRsvp) counts[myRsvp]--;
+    else counts.unknown--;
+
+    myRsvp = choice;
+    counts[choice]++;
+
+    document.getElementById('rsvp-in').classList.toggle('active', choice === 'in');
+    document.getElementById('rsvp-out').classList.toggle('active', choice === 'out');
+    document.getElementById('count-in').textContent = counts.in;
+    document.getElementById('count-out').textContent = counts.out;
+    document.getElementById('count-unknown').textContent = counts.unknown;
+
+    showToast(choice === 'in' ? "✓ You're in — see you there!" : "Marked as out — thanks for letting the team know");
+  }
+
+  // Practice mode — no opposing team, no home/away/jersey (doesn't apply to practices)
+  const params = new URLSearchParams(window.location.search);
+  const isPractice = params.get('type') === 'practice';
+  const homeAway = params.get('homeaway'); // 'home' or 'away', absent for practice
+
+  if (isPractice) {
+    document.getElementById('type-badge').textContent = 'Practice';
+    document.getElementById('type-badge').className = 'event-type-badge practice';
+    document.querySelector('.matchup-teams').innerHTML = '<span class="matchup-team">Team Practice</span>';
+    document.querySelector('.matchup-sub').textContent = 'Tuesday, June 17 · 6:00 AM';
+    document.getElementById('away-note').style.display = 'none';
+    document.getElementById('homeaway-badge').style.display = 'none';
+    document.getElementById('jersey-box').style.display = 'none';
+    document.querySelectorAll('.info-row .info-value')[0].innerHTML = 'Apex Ice Arena — Rink A <a href="https://maps.google.com/?q=Apex+Ice+Arena" target="_blank" rel="noopener">· Directions</a>';
+    document.querySelectorAll('.info-row .info-value')[1].textContent = '6:00 AM – 7:00 AM';
+  } else if (homeAway) {
+    // Jersey applies to every game regardless of venue — this is the point: a beer league
+    // team playing at the same rink every week still needs to know home vs. away each time.
+    const badge = document.getElementById('homeaway-badge');
+    const jerseyBox = document.getElementById('jersey-box');
+    const jerseyIcon = jerseyBox.querySelector('.jersey-icon');
+    const jerseyTitle = jerseyBox.querySelector('.jersey-title');
+    const jerseySub = jerseyBox.querySelector('.jersey-sub');
+
+    if (homeAway === 'home') {
+      badge.textContent = 'Home';
+      jerseyIcon.textContent = '⬛';
+      jerseyTitle.textContent = 'Wear Dark';
+      jerseySub.textContent = "You're the home team for this game";
+    } else {
+      badge.textContent = 'Away';
+      jerseyIcon.textContent = '⬜';
+      jerseyTitle.textContent = 'Wear White';
+      jerseySub.textContent = "You're the away team for this game";
+    }
+  }
+</script>
+</body>
+</html>
