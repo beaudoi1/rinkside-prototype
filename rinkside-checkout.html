@@ -154,7 +154,9 @@
   .waiver-text { font-size: 11.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; margin-bottom: 12px; }
   .waiver-checkbox-row { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: var(--text-primary); cursor: pointer; }
   .waiver-checkbox-row input { margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); }
-  .waiver-onfile-row { display: flex; align-items: center; gap: 10px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 11.5px; color: var(--green); margin-bottom: 20px; }
+  .waiver-onfile-row { display: flex; align-items: center; gap: 10px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 11.5px; color: var(--green); margin-bottom: 10px; }
+  .waiver-needed-box { background: var(--rink-mid); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; }
+  .waiver-participant-name { font-size: 12.5px; font-weight: 600; margin-bottom: 8px; }
 
   /* ============ RESPONSIVE: TABLET/DESKTOP SIDEBAR ============ */
   :root { --sidebar-w: 220px; }
@@ -325,7 +327,7 @@
       </div>
       <div class="price-row"><span class="label">Session price</span><span id="price-session">$12.00</span></div>
       <div class="price-row" id="coupon-row" style="display:none"><span class="label">Coupon (<span id="coupon-code-label"></span>)</span><span id="price-coupon" style="color:var(--green)">-$0.00</span></div>
-      <div class="price-row"><span class="label">Administrative fee</span><span id="price-fee">$0.99</span></div>
+      <div class="price-row"><span class="label" id="fee-label">Administrative fee</span><span id="price-fee">$0.99</span></div>
       <div class="price-row" id="donation-row" style="display:none; margin-bottom:0"><span class="label">Donation</span><span id="price-donation">$0.00</span></div>
       <p class="price-note" id="fee-note">Non-refundable — covers payment processing</p>
       <div class="price-divider"></div>
@@ -361,32 +363,12 @@
       <button class="change-link">Change</button>
     </div>
 
-    <div class="demo-toggle-wrap">
-      <div class="demo-label">Prototype demo control — not part of the real product</div>
-      <div class="demo-toggle">
-        <button class="demo-btn active" id="demo-first-time">First time at this rink</button>
-        <button class="demo-btn" id="demo-on-file">Waiver already on file</button>
-      </div>
-    </div>
-
-    <div id="waiver-section">
-      <p class="section-label">Liability waiver — required at this rink</p>
-      <div class="waiver-box">
-        <p class="waiver-text">Apex Ice Arena requires a signed liability waiver before your first
-        session. This covers this rink only — other rinks may have their own separate waiver.</p>
-        <label class="waiver-checkbox-row">
-          <input type="checkbox" id="waiver-check" onchange="updatePayButtonState()">
-          <span>I have read and agree to Apex Ice Arena's liability waiver</span>
-        </label>
-      </div>
-    </div>
-
-    <div id="waiver-on-file" style="display:none">
-      <div class="waiver-onfile-row">
-        <span>✓</span>
-        <span>Waiver on file for Apex Ice Arena since Jul 12, 2026 — no signature needed</span>
-      </div>
-    </div>
+    <p class="section-label">Liability waivers — each person needs their own</p>
+    <p style="font-size:11px; color:var(--text-dim); font-weight:300; margin-bottom:12px; margin-top:-6px;">
+      A waiver signed at one rink doesn't cover another, and one person's signature doesn't cover
+      the group — everyone going needs their own, unless they're already on file for Apex Ice Arena.
+    </p>
+    <div id="waiver-list"></div>
 
     <div class="policy-box">
       <span style="flex-shrink:0">ⓘ</span>
@@ -525,7 +507,20 @@
     const childCount = payingParticipants.filter(p => p.tier === 'child').length;
     const goalieCount = participants.length - payingParticipants.length;
     const sessionPrice = (adultCount * RATES.adult) + (childCount * RATES.child);
-    const fee = payingParticipants.length > 0 ? 0.99 : 0; // flat per order, waived only if EVERYONE is a goalie
+
+    // ── Variable administrative fee (D-1/D-9 revision, Aug 2026) ──
+    // $0.99 flat covers a single low-ticket transaction, but undershoots on larger ones — a
+    // family of 4 shouldn't pay the exact same fee as one person. Fee is now the greater of a
+    // $0.99 floor or 5% of the session price, which scales smoothly rather than jumping at a
+    // hard dollar threshold (a flat "5% above $25" rule would mean $24.99 and $25.01 pay very
+    // different fees for almost the same purchase — this avoids that cliff entirely). Neither
+    // the $0.99 floor nor the 5% rate is precious — easy to tune once real transaction-size data
+    // exists, this is a reasonable starting point, not a researched number.
+    const FEE_FLOOR = 0.99;
+    const FEE_RATE = 0.05;
+    const fee = payingParticipants.length > 0 ? Math.max(FEE_FLOOR, sessionPrice * FEE_RATE) : 0;
+    const feeIsPercent = fee > FEE_FLOOR;
+
     const discount = Math.min(state.couponDiscount, sessionPrice);
     const donation = state.donation;
     const total = sessionPrice - discount + fee + donation;
@@ -541,6 +536,7 @@
       priceSession.textContent = `$${sessionPrice.toFixed(2)}`;
     }
     priceFee.textContent = `$${fee.toFixed(2)}`;
+    document.getElementById('fee-label').textContent = feeIsPercent ? `Administrative fee (5%)` : 'Administrative fee';
     priceTotal.textContent = `$${total.toFixed(2)}`;
 
     const couponRow = document.getElementById('coupon-row');
@@ -575,13 +571,14 @@
   // ── Multi-select participants — each carries {name, tier, role} so pricing can differ per
   // participant on both axes (adult/child rate AND skater/goalie). "Yourself" is always adult,
   // dependents default to child. Everyone defaults to skater role. ──
-  let participants = [{ name: 'You', tier: 'adult', role: 'skater' }];
+  let participants = [{ name: 'You', tier: 'adult', role: 'skater', waiverStatus: 'onfile', waiverChecked: true }];
 
   function updateParticipantSummary() {
     const n = participants.length;
     const names = participants.map(p => p.name).join(', ');
     document.getElementById('participant-summary').textContent =
       n === 1 ? `1 participant: ${names}` : `${n} participants: ${names}`;
+    renderWaiverList();
     recalcTotal();
   }
 
@@ -595,7 +592,10 @@
     } else {
       row.classList.add('selected');
       row.setAttribute('aria-checked', 'true');
-      participants.push({ name, tier, role: 'skater' });
+      // "You" always has a waiver on file already; anyone else being re-added defaults to
+      // needing a fresh signature — matches the real default state for a dependent.
+      const waiverStatus = name === 'You' ? 'onfile' : 'needed';
+      participants.push({ name, tier, role: 'skater', waiverStatus, waiverChecked: waiverStatus === 'onfile' });
     }
     updateParticipantSummary();
   }
@@ -639,7 +639,10 @@
     row.addEventListener('click', (e) => { if (!e.target.closest('.mini-role-toggle')) toggleParticipant(row, name, tier); });
     row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleParticipant(row, name, tier); } });
     document.getElementById('dependent-rows').appendChild(row);
-    participants.push({ name, tier, role: 'skater' });
+    // Dependents default to needing a fresh waiver for THIS rink — being "saved to your account"
+    // means Rinkside remembers their profile, not that they've been waived at every rink they
+    // might play at. Applies the same whether this is an existing or brand-new dependent.
+    participants.push({ name, tier, role: 'skater', waiverStatus: 'needed', waiverChecked: false });
     updateParticipantSummary();
   }
 
@@ -680,31 +683,40 @@
     showToast(`✓ Link request sent — you'll be added as an additional guardian once verified`);
   }
 
-  // ── Waiver demo toggle ──
-  const demoFirstTime = document.getElementById('demo-first-time');
-  const demoOnFile = document.getElementById('demo-on-file');
-  const waiverSection = document.getElementById('waiver-section');
-  const waiverOnFile = document.getElementById('waiver-on-file');
-
-  function setWaiverState(firstTime) {
-    demoFirstTime.classList.toggle('active', firstTime);
-    demoOnFile.classList.toggle('active', !firstTime);
-    waiverSection.style.display = firstTime ? 'block' : 'none';
-    waiverOnFile.style.display = firstTime ? 'none' : 'block';
+  // ── Per-participant waivers (Aug 2026 revision) — a waiver signed at one rink doesn't cover
+  // another, and one person's signature doesn't cover the whole group. Each participant carries
+  // their own waiverStatus ('onfile' or 'needed') and waiverChecked state, and the Pay button
+  // stays blocked until every participant who needs one has checked their box. ──
+  function renderWaiverList() {
+    const wrap = document.getElementById('waiver-list');
+    wrap.innerHTML = participants.map((p, i) => {
+      if (p.waiverStatus === 'onfile') {
+        return `<div class="waiver-onfile-row"><span>✓</span><span>${p.name} — waiver on file for Apex Ice Arena, no signature needed</span></div>`;
+      }
+      return `
+        <div class="waiver-needed-box">
+          <div class="waiver-participant-name">${p.name} <span style="color:var(--text-dim);font-weight:300">— first time at this rink</span></div>
+          <label class="waiver-checkbox-row">
+            <input type="checkbox" ${p.waiverChecked ? 'checked' : ''} onchange="setWaiverChecked(${i}, this.checked)">
+            <span>I have read and agree to Apex Ice Arena's liability waiver on ${p.name}'s behalf</span>
+          </label>
+        </div>`;
+    }).join('');
     updatePayButtonState();
   }
-  demoFirstTime.addEventListener('click', () => setWaiverState(true));
-  demoOnFile.addEventListener('click', () => setWaiverState(false));
+
+  function setWaiverChecked(index, checked) {
+    if (participants[index]) participants[index].waiverChecked = checked;
+    updatePayButtonState();
+  }
 
   function updatePayButtonState() {
-    const firstTime = demoFirstTime.classList.contains('active');
-    const waiverChecked = document.getElementById('waiver-check').checked;
-    const blocked = firstTime && !waiverChecked;
+    const blocked = participants.some(p => p.waiverStatus === 'needed' && !p.waiverChecked);
     payBtn.disabled = blocked;
     payBtn.style.opacity = blocked ? '0.5' : '1';
     payBtn.style.cursor = blocked ? 'not-allowed' : 'pointer';
   }
-  updatePayButtonState();
+  renderWaiverList(); // initial render so "You" shows up immediately, not just after an interaction
 </script>
 </body>
 </html>

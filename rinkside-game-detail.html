@@ -59,6 +59,29 @@
   .rsvp-count-num.in { color: var(--green); }
   .rsvp-count-num.out { color: var(--red); }
   .rsvp-count-num.unknown { color: var(--text-dim); }
+
+  .sub-box { background: var(--rink-mid); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 18px; margin-bottom: 20px; }
+  .sub-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .captain-only-tag { font-size: 9px; font-weight: 700; color: var(--amber); background: rgba(251,191,36,0.12); padding: 2px 8px; border-radius: 999px; }
+  .sub-desc { font-size: 11.5px; color: var(--text-muted); font-weight: 300; margin-bottom: 14px; line-height: 1.5; }
+  .sub-field-label { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .sub-input { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; margin-bottom: 14px; }
+  .sub-input::placeholder { color: var(--text-dim); }
+  .waiver-checkbox-row { display: flex; align-items: flex-start; gap: 10px; font-size: 11.5px; color: var(--text-primary); cursor: pointer; margin-bottom: 14px; }
+  .waiver-checkbox-row input { margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); }
+  #sub-nonpartner-note { font-size: 11px; color: var(--amber); font-weight: 300; line-height: 1.5; background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.25); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 14px; }
+  .sub-add-btn { width: 100%; padding: 13px; border-radius: var(--radius-sm); background: var(--accent-purple); border: none; color: var(--rink-dark); font-weight: 700; font-size: 13.5px; cursor: pointer; font-family: var(--font-body); }
+  .sub-add-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sub-item { display: flex; align-items: center; justify-content: space-between; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px; font-size: 12.5px; }
+  .sub-item-tag { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .sub-item-tag.waived { background: rgba(74,222,128,0.12); color: var(--green); }
+  .sub-item-tag.pending { background: rgba(251,191,36,0.12); color: var(--amber); }
+
+  .demo-toggle-wrap { background: rgba(167,139,250,0.08); border: 1px dashed rgba(167,139,250,0.4); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
+  .demo-label { font-size: 10px; font-weight: 700; color: #a78bfa; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .demo-toggle { display: flex; background: var(--rink-mid); border-radius: 999px; padding: 3px; }
+  .demo-btn { flex: 1; text-align: center; padding: 7px 0; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); font-family: var(--font-body); }
+  .demo-btn.active { background: #a78bfa; color: var(--rink-dark); }
   .rsvp-count-label { color: var(--text-muted); font-size: 10.5px; margin-top: 2px; }
 
   .practice-note { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 20px; font-size: 11.5px; color: var(--text-muted); font-weight: 300; }
@@ -218,6 +241,41 @@
       </div>
     </div>
 
+    <div class="sub-box" id="sub-box">
+      <p class="sub-title">🔑 Add a substitute <span class="captain-only-tag">Captain only</span></p>
+      <p class="sub-desc">For this game only — subs aren't added to the season roster and don't pay any fee. They still need to be recorded so they can legally play and so you can set lines with them.</p>
+
+      <div class="demo-toggle-wrap">
+        <div class="demo-label">Prototype demo control — not part of the real product</div>
+        <div class="demo-toggle">
+          <button class="demo-btn active" id="demo-partner">Partner rink</button>
+          <button class="demo-btn" id="demo-nonpartner">Non-partner rink</button>
+        </div>
+      </div>
+
+      <p class="sub-field-label">Substitute's name</p>
+      <input type="text" class="sub-input" id="sub-name-input" placeholder="First and last name">
+
+      <div id="sub-waiver-section">
+        <label class="waiver-checkbox-row">
+          <input type="checkbox" id="sub-waiver-check">
+          <span>They've read and agree to South Suburban Sports Complex's liability waiver</span>
+        </label>
+      </div>
+      <div id="sub-nonpartner-note" style="display:none">
+        South Suburban Sports Complex isn't a Rinkside partner — this sub will need to sign
+        whatever waiver the rink requires in person, same as anyone else playing there. They'll
+        still be added to this game's roster so you can set lines with them.
+      </div>
+
+      <button class="sub-add-btn" onclick="addSubstitute()">Add to this game's roster</button>
+
+      <div id="subs-list-wrap" style="display:none">
+        <p class="sub-field-label" style="margin-top:16px">Subs added for this game</p>
+        <div id="subs-list"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -260,6 +318,65 @@
 
     showToast(choice === 'in' ? "✓ You're in — see you there!" : "Marked as out — thanks for letting the team know");
   }
+
+  // ── Add a substitute — persists to localStorage so it genuinely shows up as a selectable
+  // lineup option in Team Management, not just a simulated connection between two static pages.
+  const GAME_ID = 'apex-vs-icehawks-jun14'; // identifies this specific game for the sub list
+  let isPartnerRink = true;
+
+  document.getElementById('demo-partner').addEventListener('click', () => setRinkPartnerDemo(true));
+  document.getElementById('demo-nonpartner').addEventListener('click', () => setRinkPartnerDemo(false));
+
+  function setRinkPartnerDemo(partner) {
+    isPartnerRink = partner;
+    document.getElementById('demo-partner').classList.toggle('active', partner);
+    document.getElementById('demo-nonpartner').classList.toggle('active', !partner);
+    document.getElementById('sub-waiver-section').style.display = partner ? 'block' : 'none';
+    document.getElementById('sub-nonpartner-note').style.display = partner ? 'none' : 'block';
+  }
+
+  function getStoredSubs() {
+    try {
+      const raw = localStorage.getItem('rinkside-game-subs-' + GAME_ID);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function addSubstitute() {
+    const nameInput = document.getElementById('sub-name-input');
+    const name = nameInput.value.trim();
+    if (!name) { showToast('Enter the substitute\'s name'); return; }
+
+    if (isPartnerRink) {
+      const waived = document.getElementById('sub-waiver-check').checked;
+      if (!waived) { showToast('Waiver must be agreed to before adding a partner-rink substitute'); return; }
+    }
+
+    const subs = getStoredSubs();
+    subs.push({ name, waiverStatus: isPartnerRink ? 'waived' : 'pending' });
+    localStorage.setItem('rinkside-game-subs-' + GAME_ID, JSON.stringify(subs));
+
+    nameInput.value = '';
+    document.getElementById('sub-waiver-check').checked = false;
+    renderSubsList();
+    showToast(`✓ ${name} added to this game's roster`);
+  }
+
+  function renderSubsList() {
+    const subs = getStoredSubs();
+    const wrap = document.getElementById('subs-list-wrap');
+    const list = document.getElementById('subs-list');
+    if (subs.length === 0) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    list.innerHTML = subs.map(s => `
+      <div class="sub-item">
+        <span>${s.name}</span>
+        <span class="sub-item-tag ${s.waiverStatus === 'waived' ? 'waived' : 'pending'}">${s.waiverStatus === 'waived' ? '✓ Waiver on file' : 'Waiver pending — in person'}</span>
+      </div>
+    `).join('');
+  }
+
+  renderSubsList(); // show any subs already added in a previous visit
 
   // Practice mode — no opposing team, no home/away/jersey (doesn't apply to practices)
   const params = new URLSearchParams(window.location.search);
