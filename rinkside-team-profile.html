@@ -171,6 +171,18 @@
       <span id="follow-icon">☆</span> <span id="follow-text">Follow this team</span>
     </button>
 
+    <a href="rinkside-league-registration.html" style="text-decoration:none; display:block; margin-bottom:10px;">
+      <button style="width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:var(--rink-dark); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body);">
+        Register for Next Season
+      </button>
+    </a>
+
+    <a href="rinkside-team-management.html" id="manage-team-link" style="text-decoration:none; display:block; margin-bottom:20px;">
+      <button style="width:100%; padding:14px; border-radius:10px; background:none; border:1.5px solid var(--accent-purple); color:var(--accent-purple); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body);">
+        🔑 Manage Team — You're Captain
+      </button>
+    </a>
+
     <div class="key-stats" id="key-stats">
       <div class="key-stat"><div class="key-stat-val" id="stat-record">8-3-0</div><div class="key-stat-label">Record</div></div>
       <div class="key-stat"><div class="key-stat-val" id="stat-standing">2nd</div><div class="key-stat-label">Standing</div></div>
@@ -209,7 +221,10 @@
       <div><div class="info-label">Roster size</div><div class="info-value" id="roster-size-value">17 players</div></div>
     </div>
 
-    <p class="section-label" style="margin-top:20px">Roster</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;">
+      <p class="section-label" style="margin:0">Roster</p>
+      <a href="rinkside-roster.html" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;">Full roster ›</a>
+    </div>
     <div class="roster-scroll" id="roster-scroll">
       <div class="roster-avatar"><div class="roster-circle">JR</div><div class="roster-name">J. Rivera</div></div>
       <div class="roster-avatar"><div class="roster-circle">MK</div><div class="roster-name">M. Kim</div></div>
@@ -251,6 +266,10 @@
   // in the data model.
   const params = new URLSearchParams(window.location.search);
   if (params.get('team') === 'hawks') {
+    // Jordan Rivera is captain of Apex Wolves specifically — not automatically captain of every
+    // team on their account. Littleton Hawks is a kid's team he's not even a player on, so the
+    // captain-only management link has no business showing here at all.
+    document.getElementById('manage-team-link').style.display = 'none';
     document.title = 'Rinkside — Littleton Hawks';
     document.getElementById('hero-banner').style.background = 'linear-gradient(135deg, #1a2e1e, #234030)';
     document.getElementById('team-name').textContent = 'Littleton Hawks';

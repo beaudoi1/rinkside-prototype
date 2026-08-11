@@ -50,6 +50,7 @@
 
   .amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
   .amenity-chip { display: flex; align-items: center; gap: 8px; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11.5px; color: var(--text-primary); font-weight: 500; }
+  .amenity-hours { color: var(--text-dim); font-weight: 300; font-size: 10.5px; }
   .amenity-icon { font-size: 15px; flex-shrink: 0; }
 
   .rink-filter-tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; }
@@ -191,20 +192,20 @@
 
     <p class="section-label">Amenities</p>
     <div class="amenities-grid">
-      <div class="amenity-chip"><span class="amenity-icon">🍺</span> On-site bar</div>
-      <div class="amenity-chip"><span class="amenity-icon">🛒</span> Pro shop</div>
-      <div class="amenity-chip"><span class="amenity-icon">🔪</span> Skate sharpening</div>
+      <div class="amenity-chip"><span class="amenity-icon">🍺</span> On-site bar <span class="amenity-hours">· 4pm–11pm</span></div>
+      <div class="amenity-chip"><span class="amenity-icon">🛒</span> Pro shop <span class="amenity-hours">· 9am–8pm</span></div>
+      <div class="amenity-chip"><span class="amenity-icon">🔪</span> Skate sharpening <span class="amenity-hours">· 9am–8pm</span></div>
       <div class="amenity-chip"><span class="amenity-icon">⛸️</span> Skate rentals</div>
       <div class="amenity-chip"><span class="amenity-icon">🅿️</span> Free parking</div>
       <div class="amenity-chip"><span class="amenity-icon">📶</span> Free WiFi</div>
     </div>
 
     <p class="section-label">Upcoming at this rink</p>
-    <div class="rink-filter-tabs">
-      <button class="rink-filter-tab active" onclick="filterSessions('all', this)">All</button>
-      <button class="rink-filter-tab" onclick="filterSessions('hockey', this)">Hockey</button>
-      <button class="rink-filter-tab" onclick="filterSessions('public-skate', this)">Public skate</button>
-      <button class="rink-filter-tab" onclick="filterSessions('lessons', this)">Lessons</button>
+    <div class="rink-filter-tabs" id="rink-filter-tabs">
+      <button class="rink-filter-tab active" data-category="all" onclick="filterSessions('all', this)">All</button>
+      <button class="rink-filter-tab" data-category="hockey" onclick="filterSessions('hockey', this)">Hockey</button>
+      <button class="rink-filter-tab" data-category="public-skate" onclick="filterSessions('public-skate', this)">Public skate</button>
+      <button class="rink-filter-tab" data-category="lessons" onclick="filterSessions('lessons', this)">Lessons</button>
     </div>
     <div id="rink-sessions-list">
     <div class="session-card" data-category="hockey" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
@@ -259,6 +260,20 @@
     });
     document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
   }
+
+  // Filter tabs only show categories this rink actually has sessions for — a rink with only
+  // public skate shouldn't show a Hockey tab that filters to nothing.
+  (function autoHideEmptyFilterTabs() {
+    const presentCategories = new Set(
+      [...document.querySelectorAll('#rink-sessions-list .session-card')].map(c => c.dataset.category)
+    );
+    document.querySelectorAll('.rink-filter-tab[data-category]').forEach(tab => {
+      const cat = tab.dataset.category;
+      if (cat !== 'all' && !presentCategories.has(cat)) {
+        tab.style.display = 'none';
+      }
+    });
+  })();
 
   // Genericized via URL param so Explore's other rink cards route here for real
   // instead of showing a toast. Apex is the default if no param is present.

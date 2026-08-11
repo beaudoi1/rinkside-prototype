@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside Admin — Check-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42; --rink-panel-2: #1e3a52;
+    --accent: #38bdf8; --accent-purple: #a78bfa; --accent-green: #4ade80;
+    --accent-amber: #fbbf24; --accent-red: #f87171;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.10); --border-mid: rgba(56,189,248,0.20);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 12px; --radius-sm: 8px; --sidebar-w: 220px;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; display: flex; }
+
+  .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--rink-mid); border-right: 1px solid var(--border-mid); min-height: 100vh; padding: 20px 0; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; }
+  .sidebar-logo { font-family: var(--font-display); font-weight: 800; font-size: 18px; padding: 0 20px 24px; }
+  .sidebar-logo span { color: var(--accent); }
+  .nav-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); padding: 16px 20px 8px; }
+  .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; text-decoration: none; }
+  .nav-link svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .nav-link.active { background: rgba(56,189,248,0.08); color: var(--accent); border-right: 2px solid var(--accent); }
+  .nav-link:hover:not(.active) { background: rgba(255,255,255,0.03); }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 28px 32px; max-width: 900px; }
+  .page-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 24px; }
+
+  .session-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .session-tab { padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border-mid); background: var(--rink-panel); color: var(--text-muted); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+  .session-tab.active { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); }
+
+  .checkin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .checkin-stats { display: flex; gap: 20px; }
+  .checkin-stat { text-align: center; }
+  .checkin-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+  .checkin-stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+  .checkin-stat.arrived .checkin-stat-val { color: var(--accent-green); }
+  .checkin-stat.pending .checkin-stat-val { color: var(--accent-amber); }
+
+  .roster-table { width: 100%; border-collapse: collapse; background: var(--rink-panel); border-radius: var(--radius); overflow: hidden; }
+  .roster-table th { text-align: left; font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 16px; border-bottom: 1px solid var(--border-mid); }
+  .roster-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .roster-table tr:last-child td { border-bottom: none; }
+  .roster-name-cell { display: flex; align-items: center; gap: 10px; }
+  .roster-avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: var(--rink-panel-2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .role-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+  .role-badge.goalie { background: rgba(74,222,128,0.12); color: var(--accent-green); }
+  .role-badge.skater { background: rgba(56,189,248,0.1); color: var(--accent); }
+
+  .checkin-toggle-btn { padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--border-mid); background: none; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
+  .checkin-toggle-btn.checked-in { background: var(--accent-green); border-color: var(--accent-green); color: var(--rink-dark); }
+  .checkin-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .no-show-note { font-size: 10.5px; color: var(--text-dim); font-weight: 300; }
+</style>
+</head>
+<body>
+
+  <nav class="sidebar">
+    <div class="sidebar-logo">Rink<span>side</span> Admin</div>
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-link" href="rinkside-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a class="nav-link" href="rinkside-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule</a>
+    <a class="nav-link" href="rinkside-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sessions</a>
+    <a class="nav-link active" href="rinkside-admin-checkin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-link" href="rinkside-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Registrations</a>
+    <a class="nav-link" href="rinkside-admin.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Teams &amp; Leagues</a>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">Check-in</div>
+    <p class="page-sub">The rink-facing view — who's actually shown up, not just who RSVP'd. Separate from the team's own in/out view, which only tracks intent, not arrival.</p>
+
+    <div class="session-tabs">
+      <button class="session-tab active" onclick="selectSession(this)">Stick &amp; Puck · 9:00 PM</button>
+      <button class="session-tab" onclick="selectSession(this)">Public Skate · 7:00 PM</button>
+      <button class="session-tab" onclick="selectSession(this)">Apex Wolves vs Ice Hawks · 8:00 PM</button>
+    </div>
+
+    <div class="checkin-header">
+      <div class="checkin-stats">
+        <div class="checkin-stat arrived"><div class="checkin-stat-val" id="stat-arrived">4</div><div class="checkin-stat-label">Checked in</div></div>
+        <div class="checkin-stat pending"><div class="checkin-stat-val" id="stat-pending">3</div><div class="checkin-stat-label">Not yet</div></div>
+      </div>
+    </div>
+
+    <table class="roster-table">
+      <thead><tr><th>Name</th><th>Role</th><th>Registered</th><th>Status</th></tr></thead>
+      <tbody id="checkin-rows">
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">JR</div>Jordan Rivera</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 5</td>
+          <td><button class="checkin-toggle-btn checked-in" onclick="toggleCheckin(this)">✓ Checked in</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">MK</div>Maya Kim</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 6</td>
+          <td><button class="checkin-toggle-btn checked-in" onclick="toggleCheckin(this)">✓ Checked in</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">AL</div>Alex Lopez</div></td>
+          <td><span class="role-badge goalie">Goalie</span></td>
+          <td>Aug 6</td>
+          <td><button class="checkin-toggle-btn checked-in" onclick="toggleCheckin(this)">✓ Checked in</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">TS</div>Taylor Shaw</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 7</td>
+          <td><button class="checkin-toggle-btn checked-in" onclick="toggleCheckin(this)">✓ Checked in</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">DB</div>Devon Brooks</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 7</td>
+          <td><button class="checkin-toggle-btn" onclick="toggleCheckin(this)">Mark arrived</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">CN</div>Casey Nguyen</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 8</td>
+          <td><button class="checkin-toggle-btn" onclick="toggleCheckin(this)">Mark arrived</button></td>
+        </tr>
+        <tr>
+          <td><div class="roster-name-cell"><div class="roster-avatar-sm">RP</div>Riley Patel</div></td>
+          <td><span class="role-badge skater">Skater</span></td>
+          <td>Aug 8</td>
+          <td><button class="checkin-toggle-btn" onclick="toggleCheckin(this)">Mark arrived</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="no-show-note" style="margin-top:12px">Anyone not marked arrived by session end is logged as a no-show for Rinkside's own attendance history — this doesn't affect their booking or refund status, which follows the cancellation policy separately.</p>
+
+  </div>
+
+<script>
+  function selectSession(btn) {
+    document.querySelectorAll('.session-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    // Prototype: swapping session data isn't wired — this demonstrates the pattern, not live data
+  }
+
+  function toggleCheckin(btn) {
+    const checkedIn = btn.classList.toggle('checked-in');
+    btn.textContent = checkedIn ? '✓ Checked in' : 'Mark arrived';
+    updateStats();
+  }
+
+  function updateStats() {
+    const total = document.querySelectorAll('.checkin-toggle-btn').length;
+    const arrived = document.querySelectorAll('.checkin-toggle-btn.checked-in').length;
+    document.getElementById('stat-arrived').textContent = arrived;
+    document.getElementById('stat-pending').textContent = total - arrived;
+  }
+</script>
+</body>
+</html>

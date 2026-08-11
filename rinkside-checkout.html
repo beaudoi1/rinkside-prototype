@@ -129,6 +129,21 @@
   .dep-field-label { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
   .existing-dep-row { margin-bottom: 0; }
 
+  .participant-summary { font-size: 11.5px; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
+  .check-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--border-mid); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; background: var(--rink-panel); }
+  .check-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: transparent; }
+  .check-row.selected { border-color: var(--accent); }
+  .check-row.selected .check-box { border-color: var(--accent); background: var(--accent); color: var(--rink-dark); }
+  .tier-tag { display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .tier-tag.adult { background: rgba(56,189,248,0.1); color: var(--accent); }
+  .tier-tag.child { background: rgba(167,139,250,0.12); color: var(--accent-purple); }
+  .participant-row-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .mini-role-toggle { display: flex; background: var(--rink-mid); border-radius: 999px; padding: 3px; width: fit-content; }
+  .mini-role-btn { padding: 5px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-muted); font-family: var(--font-body); }
+  .mini-role-btn.active { background: var(--green); color: var(--rink-dark); }
+  .mini-role-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
   .demo-toggle-wrap { background: rgba(167,139,250,0.08); border: 1px dashed rgba(167,139,250,0.4); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
   .demo-label { font-size: 10px; font-weight: 700; color: #a78bfa; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
   .demo-toggle { display: flex; background: var(--rink-mid); border-radius: 999px; padding: 3px; }
@@ -239,27 +254,29 @@
       <span class="spots-pill" id="spots-pill">6 spots left</span>
     </div>
 
-    <p class="section-label">I'm registering as</p>
-    <div class="role-toggle">
-      <button class="role-btn active" id="role-skater">Skater</button>
-      <button class="role-btn" id="role-goalie">Goalie</button>
-    </div>
-
-    <p class="section-label">Who's going</p>
-    <div class="radio-row selected" tabindex="0" role="radio" aria-checked="true">
-      <div class="radio-dot"></div>
-      <div class="radio-label">Yourself</div>
+    <p class="section-label">Who's going <span style="font-weight:300;color:var(--text-dim);text-transform:none;letter-spacing:0">— select all that apply, and each person's own role</span></p>
+    <div class="participant-summary" id="participant-summary">1 participant: You</div>
+    <div class="check-row selected" tabindex="0" role="checkbox" aria-checked="true" id="participant-self" onclick="toggleParticipant(this, 'You', 'adult')">
+      <div class="check-box"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="participant-row-body">
+        <div class="radio-label">Yourself <span class="tier-tag adult">Adult rate</span></div>
+        <div class="mini-role-toggle" onclick="event.stopPropagation()">
+          <button class="mini-role-btn active" onclick="setParticipantRole(this, 'You', 'skater')">Skater</button>
+          <button class="mini-role-btn" onclick="setParticipantRole(this, 'You', 'goalie')">Goalie</button>
+        </div>
+      </div>
     </div>
     <div id="dependent-rows"></div>
     <div class="radio-row add-dependent-trigger" tabindex="0" role="button" aria-checked="false" id="add-dependent-row">
       <div class="radio-dot" style="display:none"></div>
-      <div class="radio-label" style="color:var(--text-muted)">+ Add a dependent</div>
+      <div class="radio-label" style="color:var(--text-muted)" id="add-dependent-label">+ Add or link a dependent</div>
     </div>
 
     <div class="dependent-form" id="dependent-form">
       <div class="dep-toggle">
-        <button class="dep-toggle-btn active" id="dep-toggle-existing" onclick="showDepPanel('existing')">Existing dependents</button>
-        <button class="dep-toggle-btn" id="dep-toggle-new" onclick="showDepPanel('new')">+ New dependent</button>
+        <button class="dep-toggle-btn active" id="dep-toggle-existing" onclick="showDepPanel('existing')">Existing</button>
+        <button class="dep-toggle-btn" id="dep-toggle-new" onclick="showDepPanel('new')">+ New</button>
+        <button class="dep-toggle-btn" id="dep-toggle-link" onclick="showDepPanel('link')">Link existing</button>
       </div>
 
       <div class="dep-panel active" id="dep-panel-existing">
@@ -267,7 +284,7 @@
           <div class="radio-dot"></div>
           <div class="radio-label">Emma Rivera <span style="color:var(--text-dim);font-weight:300">· Age 8 · saved to your account</span></div>
         </div>
-        <p class="dep-hint" style="margin-top:6px">Don't see who you're looking for? Switch to "+ New dependent" above.</p>
+        <p class="dep-hint" style="margin-top:6px">Don't see who you're looking for? Try "Link existing" if they're saved under someone else's account.</p>
       </div>
 
       <div class="dep-panel" id="dep-panel-new">
@@ -280,7 +297,22 @@
         <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
         <input type="text" class="dep-input" id="dep-usah" placeholder="e.g. 12345678">
         <p class="dep-hint">Only needed for USA Hockey–sanctioned leagues — see the note on your dependent's profile if unsure.</p>
+        <p class="dep-field-label">Dependent username <span style="font-weight:300;color:var(--text-dim)">(for other guardians to link)</span></p>
+        <input type="text" class="dep-input" id="dep-username" placeholder="e.g. emma-r2016">
+        <p class="dep-hint">Doesn't need to include your own contact info — a phone number or email works too if you'd rather use that instead.</p>
+        <p class="dep-field-label">Link password <span style="font-weight:300;color:var(--text-dim)">(required for anyone else to link this profile)</span></p>
+        <input type="password" class="dep-input" id="dep-link-password" placeholder="Set a password">
+        <p class="dep-hint">Share this only with other guardians you trust — anyone with the username and this password can link to this profile, and it includes date of birth.</p>
         <button class="dep-save-btn" onclick="saveDependent()">Save &amp; Select</button>
+      </div>
+
+      <div class="dep-panel" id="dep-panel-link">
+        <p class="dep-field-label">Dependent's username, phone, or email</p>
+        <input type="text" class="dep-input" id="dep-link-contact" placeholder="e.g. emma-r2016">
+        <p class="dep-field-label">Link password</p>
+        <input type="password" class="dep-input" id="dep-link-pw" placeholder="Ask the primary guardian for this">
+        <p class="dep-hint">Both the identifier and password are required — this connects you as an additional guardian, it doesn't transfer or remove anyone's existing access.</p>
+        <button class="dep-save-btn" onclick="requestDependentLink()">Link this dependent</button>
       </div>
     </div>
 
@@ -400,8 +432,6 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
   }
 
-  const roleSkater = document.getElementById('role-skater');
-  const roleGoalie = document.getElementById('role-goalie');
   const goalieBanner = document.getElementById('goalie-banner');
   const priceSession = document.getElementById('price-session');
   const priceFee = document.getElementById('price-fee');
@@ -410,21 +440,22 @@
   const payBtn = document.getElementById('pay-btn');
   const spotsPill = document.getElementById('spots-pill');
 
-  function setRole(role) {
-    state.role = role;
-    const isGoalie = role === 'goalie';
-    roleSkater.classList.toggle('active', !isGoalie);
-    roleGoalie.classList.toggle('active', isGoalie);
-    goalieBanner.classList.toggle('show', isGoalie);
-    feeNote.textContent = isGoalie ? 'Goalies are never charged an administrative fee' : 'Non-refundable — covers payment processing';
-    spotsPill.textContent = isGoalie ? '2 of 4 goalie spots open' : '6 spots left';
-    spotsPill.style.background = isGoalie ? 'rgba(74,222,128,0.14)' : 'rgba(251,191,36,0.14)';
-    spotsPill.style.color = isGoalie ? 'var(--green)' : 'var(--amber)';
+  // Role is per-participant now, not per-order — a parent registering as goalie alongside a
+  // non-goalie kid needs the kid to still be charged. See setParticipantRole() below.
+  function setParticipantRole(btn, name, role) {
+    const toggle = btn.parentElement;
+    toggle.querySelectorAll('.mini-role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const participant = participants.find(p => p.name === name);
+    if (participant) participant.role = role;
+
+    const anyGoalie = participants.some(p => p.role === 'goalie');
+    goalieBanner.classList.toggle('show', anyGoalie);
+    feeNote.textContent = anyGoalie
+      ? 'Goalies are never charged an administrative fee — applies per person, not the whole order'
+      : 'Non-refundable — covers payment processing';
     recalcTotal();
   }
-
-  roleSkater.addEventListener('click', () => setRole('skater'));
-  roleGoalie.addEventListener('click', () => setRole('goalie'));
 
   // ── Coupon ──
   const COUPON_CODES = { 'FIRST5': 5.00, 'SKATE3': 3.00 };
@@ -482,20 +513,33 @@
     recalcTotal();
   }
 
-  // ── Unified total calculation — role, coupon, and donation all combine here rather than
-  // each overwriting the others (the original goalie-only version didn't account for a
-  // goalie who still wants to donate, or a skater who has both a coupon and a donation active) ──
-  const state = { role: 'skater', couponCode: null, couponDiscount: 0, donation: 0 };
+  const state = { couponCode: null, couponDiscount: 0, donation: 0 };
+  const RATES = { adult: 12.00, child: 8.00 };
 
   function recalcTotal() {
-    const isGoalie = state.role === 'goalie';
-    const sessionPrice = isGoalie ? 0 : 12.00;
-    const fee = isGoalie ? 0 : 0.99;
-    const discount = isGoalie ? 0 : Math.min(state.couponDiscount, sessionPrice); // can't discount below $0 session price
+    // Each participant prices independently: goalies are $0 regardless of tier, everyone else
+    // pays their own tier rate. This is the actual fix — previously one global toggle zeroed
+    // the whole order's session price if anyone was a goalie.
+    const payingParticipants = participants.filter(p => p.role !== 'goalie');
+    const adultCount = payingParticipants.filter(p => p.tier === 'adult').length;
+    const childCount = payingParticipants.filter(p => p.tier === 'child').length;
+    const goalieCount = participants.length - payingParticipants.length;
+    const sessionPrice = (adultCount * RATES.adult) + (childCount * RATES.child);
+    const fee = payingParticipants.length > 0 ? 0.99 : 0; // flat per order, waived only if EVERYONE is a goalie
+    const discount = Math.min(state.couponDiscount, sessionPrice);
     const donation = state.donation;
     const total = sessionPrice - discount + fee + donation;
 
-    priceSession.textContent = `$${sessionPrice.toFixed(2)}`;
+    const parts = [];
+    if (adultCount > 0) parts.push(`${adultCount} adult${adultCount>1?'s':''} × $${RATES.adult.toFixed(2)}`);
+    if (childCount > 0) parts.push(`${childCount} child${childCount>1?'ren':''} × $${RATES.child.toFixed(2)}`);
+    if (goalieCount > 0) parts.push(`${goalieCount} goalie${goalieCount>1?'s':''} free`);
+
+    if (parts.length > 1) {
+      priceSession.innerHTML = `$${sessionPrice.toFixed(2)}<br><span style="font-size:10.5px;color:var(--text-dim);font-weight:300">${parts.join(' + ')}</span>`;
+    } else {
+      priceSession.textContent = `$${sessionPrice.toFixed(2)}`;
+    }
     priceFee.textContent = `$${fee.toFixed(2)}`;
     priceTotal.textContent = `$${total.toFixed(2)}`;
 
@@ -523,28 +567,52 @@
       payBtn.textContent = 'Register — Free';
       payBtn.classList.add('free');
     } else {
-      payBtn.textContent = isGoalie ? `Pay $${total.toFixed(2)} & Register` : `Pay $${total.toFixed(2)} & Book`;
+      payBtn.textContent = `Pay $${total.toFixed(2)} & Book`;
       payBtn.classList.remove('free');
     }
   }
 
-  document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(row => {
-    row.addEventListener('click', () => {
-      document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
+  // ── Multi-select participants — each carries {name, tier, role} so pricing can differ per
+  // participant on both axes (adult/child rate AND skater/goalie). "Yourself" is always adult,
+  // dependents default to child. Everyone defaults to skater role. ──
+  let participants = [{ name: 'You', tier: 'adult', role: 'skater' }];
+
+  function updateParticipantSummary() {
+    const n = participants.length;
+    const names = participants.map(p => p.name).join(', ');
+    document.getElementById('participant-summary').textContent =
+      n === 1 ? `1 participant: ${names}` : `${n} participants: ${names}`;
+    recalcTotal();
+  }
+
+  function toggleParticipant(row, name, tier) {
+    const isSelected = row.classList.contains('selected');
+    if (isSelected) {
+      if (participants.length === 1) { showToast('At least one participant is required'); return; }
+      row.classList.remove('selected');
+      row.setAttribute('aria-checked', 'false');
+      participants = participants.filter(p => p.name !== name);
+    } else {
       row.classList.add('selected');
-      row.setAttribute('aria-checked','true');
-    });
-    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); } });
-  });
+      row.setAttribute('aria-checked', 'true');
+      participants.push({ name, tier, role: 'skater' });
+    }
+    updateParticipantSummary();
+  }
+
+  document.getElementById('participant-self').setAttribute('data-name', 'You');
 
   // Arrive pre-set to Goalie if linked from Session Detail's "Register as Goalie" CTA
   const params = new URLSearchParams(window.location.search);
-  if (params.get('role') === 'goalie') setRole('goalie');
+  if (params.get('role') === 'goalie') {
+    const selfRow = document.getElementById('participant-self');
+    const goalieBtn = selfRow.querySelector('.mini-role-btn:nth-child(2)');
+    setParticipantRole(goalieBtn, 'You', 'goalie');
+  }
 
-  // ── Add a dependent ──
+  // ── Add / link a dependent ──
   const addDependentRow = document.getElementById('add-dependent-row');
   const dependentForm = document.getElementById('dependent-form');
-  let dependentCount = 0;
 
   addDependentRow.addEventListener('click', () => {
     dependentForm.classList.toggle('show');
@@ -554,53 +622,62 @@
   function showDepPanel(panel) {
     document.getElementById('dep-toggle-existing').classList.toggle('active', panel === 'existing');
     document.getElementById('dep-toggle-new').classList.toggle('active', panel === 'new');
+    document.getElementById('dep-toggle-link').classList.toggle('active', panel === 'link');
     document.getElementById('dep-panel-existing').classList.toggle('active', panel === 'existing');
     document.getElementById('dep-panel-new').classList.toggle('active', panel === 'new');
+    document.getElementById('dep-panel-link').classList.toggle('active', panel === 'link');
+  }
+
+  function addParticipantCheckRow(name, sub, tier) {
+    const row = document.createElement('div');
+    row.className = 'check-row selected';
+    row.tabIndex = 0;
+    row.setAttribute('role', 'checkbox');
+    row.setAttribute('aria-checked', 'true');
+    const tierTag = tier === 'child' ? '<span class="tier-tag child">Child rate</span>' : '<span class="tier-tag adult">Adult rate</span>';
+    row.innerHTML = `<div class="check-box"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="participant-row-body"><div class="radio-label">${name} ${sub ? `<span style="color:var(--text-dim);font-weight:300">${sub}</span>` : ''} ${tierTag}</div><div class="mini-role-toggle" onclick="event.stopPropagation()"><button class="mini-role-btn active" onclick="setParticipantRole(this, '${name}', 'skater')">Skater</button><button class="mini-role-btn" onclick="setParticipantRole(this, '${name}', 'goalie')">Goalie</button></div></div>`;
+    row.addEventListener('click', (e) => { if (!e.target.closest('.mini-role-toggle')) toggleParticipant(row, name, tier); });
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleParticipant(row, name, tier); } });
+    document.getElementById('dependent-rows').appendChild(row);
+    participants.push({ name, tier, role: 'skater' });
+    updateParticipantSummary();
   }
 
   function selectExistingDependent(row, name) {
-    document.querySelectorAll('.existing-dep-row').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked', 'false'); });
-    row.classList.add('selected');
-    row.setAttribute('aria-checked', 'true');
-    document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked', 'false'); });
-    row.classList.add('selected');
+    addParticipantCheckRow(name, '· selected', 'child');
+    row.style.display = 'none'; // remove from the "existing" list once added, so it can't be double-added
     dependentForm.classList.remove('show');
-    showToast(`✓ ${name} selected`);
+    showToast(`✓ ${name} added to this booking`);
   }
 
   function saveDependent() {
     const first = document.getElementById('dep-first').value.trim();
     const last = document.getElementById('dep-last').value.trim();
     if (!first || !last) { showToast('Enter a first and last name'); return; }
+    const linkPw = document.getElementById('dep-link-password').value;
+    if (!linkPw) { showToast('Set a link password so this profile can\'t be linked without your permission'); return; }
 
-    dependentCount++;
-    const row = document.createElement('div');
-    row.className = 'radio-row';
-    row.tabIndex = 0;
-    row.setAttribute('role', 'radio');
-    row.setAttribute('aria-checked', 'false');
-    row.innerHTML = `<div class="radio-dot"></div><div class="radio-label">${first} ${last} <span style="color:var(--text-dim);font-weight:300">· saved to your account</span></div>`;
-    wireRadioRow(row);
-    document.getElementById('dependent-rows').appendChild(row);
+    addParticipantCheckRow(`${first} ${last}`, '· saved to your account', 'child');
 
     document.getElementById('dep-first').value = '';
     document.getElementById('dep-last').value = '';
     document.getElementById('dep-dob').value = '';
     document.getElementById('dep-usah').value = '';
+    document.getElementById('dep-username').value = '';
+    document.getElementById('dep-link-password').value = '';
     dependentForm.classList.remove('show');
     showToast(`✓ ${first} added — saved under your account for next time`);
-
-    // Select the newly added dependent
-    row.click();
   }
 
-  function wireRadioRow(row) {
-    row.addEventListener('click', () => {
-      document.querySelectorAll('.radio-row:not(.add-dependent-trigger)').forEach(r => { r.classList.remove('selected'); r.setAttribute('aria-checked','false'); });
-      row.classList.add('selected');
-      row.setAttribute('aria-checked','true');
-    });
-    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); } });
+  function requestDependentLink() {
+    const contact = document.getElementById('dep-link-contact').value.trim();
+    const pw = document.getElementById('dep-link-pw').value;
+    if (!contact) { showToast('Enter a username, phone, or email'); return; }
+    if (!pw) { showToast('Enter the link password too — both are required'); return; }
+    document.getElementById('dep-link-contact').value = '';
+    document.getElementById('dep-link-pw').value = '';
+    dependentForm.classList.remove('show');
+    showToast(`✓ Link request sent — you'll be added as an additional guardian once verified`);
   }
 
   // ── Waiver demo toggle ──

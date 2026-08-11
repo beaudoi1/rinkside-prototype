@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px; --green:#4ade80; --amber:#fbbf24;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 12px; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+  .roster-sub { padding: 0 20px 16px; font-size: 12px; color: var(--text-muted); font-weight: 300; }
+
+  .content { padding: 0 20px; }
+  .edit-mode-banner { display: none; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.4); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 14px; font-size: 11px; color: #a78bfa; }
+  .edit-mode-banner.show { display: block; }
+
+  .roster-toggle-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--border-mid); color: var(--text-primary); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 999px; cursor: pointer; font-family: var(--font-body); margin-bottom: 16px; }
+  .roster-toggle-btn.active { background: var(--accent-purple); border-color: var(--accent-purple); color: var(--rink-dark); }
+  .roster-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .roster-row { display: flex; align-items: center; gap: 14px; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; }
+  .roster-number { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--accent); width: 34px; text-align: center; flex-shrink: 0; }
+  .roster-number-input { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--rink-dark); width: 34px; text-align: center; flex-shrink: 0; background: var(--accent); border: none; border-radius: 6px; padding: 4px 0; display: none; }
+  .edit-mode .roster-number { display: none; }
+  .edit-mode .roster-number-input { display: block; }
+  .roster-info { flex: 1; min-width: 0; }
+  .roster-name { font-size: 13.5px; font-weight: 600; }
+  .roster-position { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 1px; }
+  .roster-captain-badge { font-size: 9px; font-weight: 700; color: var(--amber); background: rgba(251,191,36,0.12); padding: 2px 7px; border-radius: 999px; margin-left: 6px; }
+
+  .save-roster-btn { display: none; width: 100%; padding: 14px; border-radius: var(--radius-sm); background: var(--accent-purple); border: none; color: var(--rink-dark); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); margin-top: 10px; }
+  .save-roster-btn.show { display: block; }
+  .save-roster-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-team-profile.html" aria-label="Back to team" onclick="if(window.history.length>1){history.back();return false;}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1>Roster</h1>
+  </div>
+  <p class="roster-sub">Apex Wolves · Adult Hockey · Division 2 · 14 players</p>
+
+  <div class="content">
+
+    <button class="roster-toggle-btn" id="edit-toggle" onclick="toggleEditMode()">✏️ Edit jersey numbers</button>
+    <div class="edit-mode-banner" id="edit-banner">
+      Jersey numbers are managed here, from the team side — not from a player's own profile, since
+      the same player can wear different numbers on different teams.
+    </div>
+
+    <div id="roster-list">
+      <div class="roster-row">
+        <div class="roster-number">14</div>
+        <input type="number" class="roster-number-input" value="14" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">J. Rivera <span class="roster-captain-badge">C</span></div><div class="roster-position">Centre</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">7</div>
+        <input type="number" class="roster-number-input" value="7" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">M. Kim</div><div class="roster-position">Defense</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">22</div>
+        <input type="number" class="roster-number-input" value="22" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">T. Shaw</div><div class="roster-position">Wing</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">91</div>
+        <input type="number" class="roster-number-input" value="91" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">D. Brooks</div><div class="roster-position">Wing</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">4</div>
+        <input type="number" class="roster-number-input" value="4" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">C. Nguyen</div><div class="roster-position">Centre</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">17</div>
+        <input type="number" class="roster-number-input" value="17" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">R. Patel</div><div class="roster-position">Defense</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">1</div>
+        <input type="number" class="roster-number-input" value="1" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">A. Lopez</div><div class="roster-position">Goalie</div></div>
+      </div>
+      <div class="roster-row">
+        <div class="roster-number">30</div>
+        <input type="number" class="roster-number-input" value="30" min="0" max="99">
+        <div class="roster-info"><div class="roster-name">K. Osei</div><div class="roster-position">Goalie</div></div>
+      </div>
+    </div>
+
+    <button class="save-roster-btn" id="save-roster-btn" onclick="saveRoster()">Save jersey number changes</button>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--rink-panel);border:1px solid var(--border-mid);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:500;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s, transform 0.2s;max-width:90%;text-align:center;"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2500);
+  }
+
+  let editing = false;
+  function toggleEditMode() {
+    editing = !editing;
+    document.getElementById('roster-list').classList.toggle('edit-mode', editing);
+    document.getElementById('edit-toggle').classList.toggle('active', editing);
+    document.getElementById('edit-toggle').textContent = editing ? '✓ Editing numbers' : '✏️ Edit jersey numbers';
+    document.getElementById('edit-banner').classList.toggle('show', editing);
+    document.getElementById('save-roster-btn').classList.toggle('show', editing);
+  }
+
+  function saveRoster() {
+    document.querySelectorAll('.roster-row').forEach(row => {
+      const input = row.querySelector('.roster-number-input');
+      const display = row.querySelector('.roster-number');
+      display.textContent = input.value;
+    });
+    toggleEditMode();
+    showToast('✓ Jersey numbers updated');
+  }
+</script>
+</body>
+</html>

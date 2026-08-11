@@ -43,6 +43,12 @@
 
   .about-box { background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 16px; margin: 20px 0; font-size: 12.5px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
 
+  .amenities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .amenity-chip { display: flex; align-items: center; gap: 8px; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11.5px; color: var(--text-primary); font-weight: 500; }
+  .amenity-icon { font-size: 15px; flex-shrink: 0; }
+  .amenity-hours { color: var(--text-dim); font-weight: 300; font-size: 10.5px; }
+  .amenity-source-note { font-size: 10px; color: var(--text-dim); font-weight: 300; margin-bottom: 20px; line-height: 1.5; }
+
   .save-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; border-radius: var(--radius-sm); background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); font-weight: 600; font-size: 13px; cursor: pointer; font-family: var(--font-body); margin-bottom: 24px; }
   .save-btn.saved { border-color: var(--red); color: var(--red); }
   .save-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -99,6 +105,15 @@
       hockey. Rinkside doesn't have a booking relationship with this rink yet — tapping a session
       below takes you to their own site to register.
     </div>
+
+    <p class="section-label">Amenities</p>
+    <div class="amenities-grid">
+      <div class="amenity-chip"><span class="amenity-icon">🛒</span> Pro shop <span class="amenity-hours">· 8am–8pm</span></div>
+      <div class="amenity-chip"><span class="amenity-icon">🔪</span> Skate sharpening <span class="amenity-hours">· 9am–7pm</span></div>
+      <div class="amenity-chip"><span class="amenity-icon">⛸️</span> Skate rentals</div>
+      <div class="amenity-chip"><span class="amenity-icon">🅿️</span> Free parking</div>
+    </div>
+    <p class="amenity-source-note">Amenity info compiled from public sources, same as the schedule above — not confirmed directly by the rink.</p>
 
     <p class="section-label">Upcoming — booking happens on their site</p>
     <div class="session-card" tabindex="0" onclick="handleExternalTap('Learn to Skate')">

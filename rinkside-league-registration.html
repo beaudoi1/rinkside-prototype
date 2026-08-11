@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Adult Hockey Registration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-purple: #a78bfa;
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+    --green:#4ade80; --amber:#fbbf24; --red:#f87171;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 12px; }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+  .league-sub { padding: 0 20px 16px; font-size: 12px; color: var(--text-muted); font-weight: 300; }
+
+  .content { padding: 0 20px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; margin-top: 18px; }
+
+  .program-card { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+  .program-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .program-code { font-size: 10.5px; color: var(--text-dim); font-weight: 300; margin-bottom: 10px; }
+  .program-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .program-dates { font-size: 11.5px; color: var(--text-muted); font-weight: 300; }
+  .program-price { font-family: var(--font-display); font-size: 16px; font-weight: 800; }
+  .program-status { font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .program-status.open { background: rgba(74,222,128,0.12); color: var(--green); }
+  .program-status.full { background: rgba(248,113,113,0.12); color: var(--red); }
+  .program-btn { width: 100%; padding: 12px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); border: none; }
+  .program-btn.enabled { background: var(--accent); color: var(--rink-dark); }
+  .program-btn.disabled { background: var(--rink-mid); color: var(--text-dim); cursor: not-allowed; }
+  .program-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Step panels — hidden until reached, matches the real flow's modal-per-step pattern */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  .participate-option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1.5px solid var(--border-mid); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; background: var(--rink-panel); }
+  .participate-option.selected { border-color: var(--accent); }
+  .participate-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-mid); flex-shrink: 0; margin-top: 1px; position: relative; }
+  .participate-option.selected .participate-radio { border-color: var(--accent); }
+  .participate-option.selected .participate-radio::after { content:''; position:absolute; inset:3px; border-radius:50%; background: var(--accent); }
+  .participate-title { font-size: 13.5px; font-weight: 600; }
+  .participate-sub { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 2px; }
+
+  .team-table-wrap { overflow-x: auto; margin-top: 14px; margin-bottom: 16px; }
+  table.team-table { width: 100%; border-collapse: collapse; min-width: 480px; }
+  table.team-table th { text-align: left; font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 10px; border-bottom: 1px solid var(--border-mid); }
+  table.team-table td { padding: 10px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+  .team-row { cursor: pointer; }
+  .team-row:hover { background: rgba(56,189,248,0.04); }
+  .team-row.selected { background: rgba(56,189,248,0.08); }
+  .avail-tag { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .avail-tag.code { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .avail-tag.full { background: rgba(248,113,113,0.12); color: var(--red); }
+
+  .code-entry { display: none; background: var(--rink-mid); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px; }
+  .code-entry.show { display: block; }
+  .code-entry-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .code-entry-sub { font-size: 10.5px; color: var(--text-dim); font-weight: 300; margin-bottom: 10px; }
+  .code-input { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; letter-spacing: 2px; text-align: center; text-transform: uppercase; }
+  .code-input::placeholder { color: var(--text-dim); letter-spacing: normal; text-transform: none; }
+  .code-verify-btn { width: 100%; padding: 12px; border-radius: var(--radius-sm); background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); margin-top: 10px; }
+  .code-msg { font-size: 11px; margin-top: 8px; min-height: 14px; }
+  .code-msg.valid { color: var(--green); }
+  .code-msg.invalid { color: var(--red); }
+
+  .continue-btn { width: 100%; padding: 15px; border-radius: var(--radius-sm); background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); margin-top: 8px; }
+  .continue-btn:disabled { background: var(--rink-mid); color: var(--text-dim); cursor: not-allowed; }
+  .continue-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .step-back { background: none; border: none; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); margin-bottom: 14px; display: flex; align-items: center; gap: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-team-profile.html" aria-label="Back" onclick="if(window.history.length>1){history.back();return false;}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1>Adult Hockey — Edge</h1>
+  </div>
+  <p class="league-sub">Season: Summer 26</p>
+
+  <div class="content">
+
+    <!-- STEP 1: Program listing — matches the real pattern of separate listings for
+         regular divisions, free agents, and goalies, rather than one shared form -->
+    <div class="step-panel active" id="step-programs">
+      <p class="section-label" style="margin-top:0">Choose a program</p>
+
+      <div class="program-card">
+        <div class="program-title">Summer 26 — D1 League</div>
+        <div class="program-code">EAHL-D1-SU26</div>
+        <div class="program-meta-row">
+          <span class="program-dates">05/10/26 – 08/29/26</span>
+          <span class="program-price">$275.00</span>
+        </div>
+        <button class="program-btn enabled" onclick="goToStep('participate', 'D1 League', 275)">Register</button>
+      </div>
+
+      <div class="program-card">
+        <div class="program-title">Summer 26 — Free Agents</div>
+        <div class="program-code">EAHL-FA-SU26</div>
+        <div class="program-meta-row">
+          <span class="program-dates">05/10/26 – 08/29/26</span>
+          <span class="program-price">$0.00</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);font-weight:300;margin-bottom:10px;">No cost to register as a free agent — you'll be placed on a team that's short on roster. The team pays the season fee, not you.</p>
+        <button class="program-btn enabled" onclick="goToStep('freeagent', 'Free Agent', 0)">Register as Free Agent</button>
+      </div>
+
+      <div class="program-card">
+        <div class="program-title">Summer 26 Goalies</div>
+        <div class="program-code">EAHL-GK-SU26</div>
+        <div class="program-meta-row">
+          <span class="program-dates">No fixed schedule</span>
+          <span class="program-price">$0.00</span>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);font-weight:300;margin-bottom:10px;">Goalies register separately and always play free — matches the same rule as drop-in sessions.</p>
+        <button class="program-btn enabled" onclick="goToStep('participate', 'Goalie', 0)">Register as Goalie</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: How will you participate — matches the real "Team Information" modal -->
+    <div class="step-panel" id="step-participate">
+      <button class="step-back" onclick="goToStep('programs')">‹ Back to programs</button>
+      <p class="section-label" style="margin-top:0">How will you participate?</p>
+      <p style="font-size:11.5px;color:var(--text-muted);font-weight:300;margin-bottom:14px;" id="participate-context">Summer 26 — D1 League</p>
+
+      <div class="participate-option selected" onclick="selectParticipateOption(this, 'join')">
+        <div class="participate-radio"></div>
+        <div><div class="participate-title">Join a Team (Player)</div><div class="participate-sub">Pick from teams that need players — most require a code from the captain</div></div>
+      </div>
+      <div class="participate-option" onclick="selectParticipateOption(this, 'captain')">
+        <div class="participate-radio"></div>
+        <div><div class="participate-title">Start a New Team (Captain)</div><div class="participate-sub">Register your own team — you'll get a code to invite players</div></div>
+      </div>
+
+      <button class="continue-btn" onclick="handleParticipateContinue()">Continue</button>
+    </div>
+
+    <!-- STEP 3a: Team selection table — matches the real screenshot exactly: Team Name /
+         Captain / Participants / Availability, with a code-required gate -->
+    <div class="step-panel" id="step-teams">
+      <button class="step-back" onclick="goToStep('participate')">‹ Back</button>
+      <p class="section-label" style="margin-top:0">Select the team you wish to join</p>
+
+      <div class="team-table-wrap">
+        <table class="team-table">
+          <thead><tr><th>Team Name</th><th>Captain</th><th>Players</th><th>Availability</th></tr></thead>
+          <tbody id="team-rows">
+            <tr class="team-row" onclick="selectTeam(this, 'B Pigeons')"><td>B Pigeons</td><td>TBD</td><td>11</td><td><span class="avail-tag code">Code Required</span></td></tr>
+            <tr class="team-row" onclick="selectTeam(this, 'Bardownski')"><td>Bardownski</td><td>TBD</td><td>12</td><td><span class="avail-tag code">Code Required</span></td></tr>
+            <tr class="team-row" onclick="selectTeam(this, 'CCU')"><td>CCU</td><td>TBD</td><td>9</td><td><span class="avail-tag code">Code Required</span></td></tr>
+            <tr class="team-row" onclick="selectTeam(this, 'Ice Men')"><td>Ice Men</td><td>TBD</td><td>14</td><td><span class="avail-tag code">Code Required</span></td></tr>
+            <tr class="team-row" onclick="selectTeam(this, 'Lord of the Rinks')"><td>Lord of the Rinks</td><td>TBD</td><td>0</td><td><span class="avail-tag code">Code Required</span></td></tr>
+            <tr class="team-row" onclick="selectTeam(this, 'Lost Dawgs')"><td>Lost Dawgs</td><td>TBD</td><td>12</td><td><span class="avail-tag code">Code Required</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-entry" id="code-entry">
+        <div class="code-entry-label">Enter this team's join code</div>
+        <div class="code-entry-sub" id="code-entry-team-name">Ask your team captain for this — it's how Rinkside makes sure only people the team actually wants show up on the roster.</div>
+        <input type="text" class="code-input" id="team-code-input" placeholder="e.g. WOLF26" maxlength="10">
+        <button class="code-verify-btn" onclick="verifyTeamCode()">Verify code</button>
+        <p class="code-msg" id="code-msg"></p>
+      </div>
+
+      <button class="continue-btn" id="team-continue-btn" onclick="goToStep('participants')" disabled>Continue</button>
+    </div>
+
+    <!-- STEP 3b: Free agent confirmation -->
+    <div class="step-panel" id="step-freeagent">
+      <button class="step-back" onclick="goToStep('programs')">‹ Back to programs</button>
+      <p class="section-label" style="margin-top:0">Register as a free agent</p>
+      <div class="program-card">
+        <p style="font-size:12.5px;color:var(--text-muted);font-weight:300;line-height:1.6;">
+          You'll be placed on a team that needs players once the season roster locks. Free agent
+          spots are filled by the league, not chosen by you — this is how a smaller roster still
+          gets to play a full season.
+        </p>
+      </div>
+      <button class="continue-btn" onclick="goToStep('participants')">Continue</button>
+    </div>
+
+    <!-- STEP 4: Participant selection — reuses the same pattern as Checkout's multi-select,
+         matching the real "Select Participants" modal's family-member-checkbox pattern -->
+    <div class="step-panel" id="step-participants">
+      <button class="step-back" id="participants-back-btn" onclick="goToStep('teams')">‹ Back</button>
+      <p class="section-label" style="margin-top:0">Select participants</p>
+      <p style="font-size:11.5px;color:var(--text-muted);font-weight:300;margin-bottom:14px;">Check the box next to anyone you'd like to register for this program.</p>
+
+      <div class="participate-option selected" onclick="this.classList.toggle('selected')">
+        <div class="participate-radio"></div>
+        <div><div class="participate-title">Aaron Beaudoin</div></div>
+      </div>
+
+      <button class="continue-btn" onclick="window.location.href='rinkside-checkout.html'">Continue to Checkout</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--rink-panel);border:1px solid var(--border-mid);border-radius:999px;padding:10px 20px;font-size:13px;font-weight:500;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s, transform 0.2s;max-width:90%;text-align:center;"></div>
+
+<script>
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2500);
+  }
+
+  let currentParticipateOption = 'join';
+  let selectedTeam = null;
+
+  function goToStep(step, context, price) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('step-' + step).classList.add('active');
+    if (context) document.getElementById('participate-context').textContent = `Summer 26 — ${context}${price !== undefined ? ' · $' + price.toFixed(2) : ''}`;
+  }
+
+  function selectParticipateOption(el, option) {
+    document.querySelectorAll('.participate-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    currentParticipateOption = option;
+  }
+
+  function handleParticipateContinue() {
+    if (currentParticipateOption === 'join') {
+      goToStep('teams');
+    } else {
+      showToast('✓ You\'re set up as team captain — a join code will be generated once payment completes');
+      goToStep('participants');
+      document.getElementById('participants-back-btn').setAttribute('onclick', "goToStep('participate')");
+    }
+  }
+
+  // Real join codes for demo purposes — in the real product these would be captain-generated
+  // and unique per team, not hardcoded, but this demonstrates the actual gate working.
+  const TEAM_CODES = { 'B Pigeons': 'WOLF26', 'Bardownski': 'BARD1', 'CCU': 'CCU2026', 'Ice Men': 'ICEMEN', 'Lord of the Rinks': 'LOTR26', 'Lost Dawgs': 'DAWGS1' };
+
+  function selectTeam(row, teamName) {
+    document.querySelectorAll('.team-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    selectedTeam = teamName;
+    document.getElementById('code-entry').classList.add('show');
+    document.getElementById('code-entry-team-name').textContent = `Ask ${teamName}'s captain for this — it's how Rinkside makes sure only people the team actually wants show up on the roster.`;
+    document.getElementById('team-code-input').value = '';
+    document.getElementById('code-msg').textContent = '';
+    document.getElementById('team-continue-btn').disabled = true;
+  }
+
+  function verifyTeamCode() {
+    const input = document.getElementById('team-code-input').value.trim().toUpperCase();
+    const msg = document.getElementById('code-msg');
+    if (input === TEAM_CODES[selectedTeam]) {
+      msg.textContent = `✓ Code verified — you're set to join ${selectedTeam}`;
+      msg.className = 'code-msg valid';
+      document.getElementById('team-continue-btn').disabled = false;
+    } else {
+      msg.textContent = 'That code doesn\'t match this team — check with your captain';
+      msg.className = 'code-msg invalid';
+      document.getElementById('team-continue-btn').disabled = true;
+    }
+  }
+</script>
+</body>
+</html>
