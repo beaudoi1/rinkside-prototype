@@ -191,6 +191,7 @@
   <div class="view-toggle">
     <button class="toggle-btn active" id="toggle-activities">Activities</button>
     <button class="toggle-btn" id="toggle-rinks">Rinks</button>
+    <button class="toggle-btn" id="toggle-associations">Leagues</button>
   </div>
 
   <div class="search-bar">
@@ -209,10 +210,10 @@
 
     <h2 class="section-label">All nearby rinks</h2>
     <div class="list" id="rinks-list">
-      <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-rink-profile.html?rink=foothills'">
+      <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-rink-profile.html?rink=edge'">
         <div class="card-icon">🏟️</div>
         <div class="card-body">
-          <div class="card-name">Foothills Ice Arena <span class="confidence confirmed">✓ Confirmed</span></div>
+          <div class="card-name">Edge Ice Arena <span class="confidence confirmed">✓ Confirmed</span></div>
           <div class="card-sub">1.2 mi · Open now</div>
         </div>
         <div class="card-right"><span class="badge badge-green">Open</span></div>
@@ -235,8 +236,11 @@
       </div>
     </div>
     <button class="view-more-btn" onclick="showToast('🏒 Showing 5 more rinks…')">View more ›</button>
+  </section>
 
-    <h2 class="section-label" style="margin-top:24px">Associations &amp; leagues</h2>
+  <!-- ── ASSOCIATIONS & LEAGUES VIEW ── -->
+  <section class="view-panel" id="panel-associations">
+    <h2 class="section-label" style="margin-top:0">Associations &amp; leagues</h2>
     <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-association-profile.html'">
       <div class="card-icon">🏛️</div>
       <div class="card-body">
@@ -285,7 +289,7 @@
       <div class="card-icon">⛸️</div>
       <div class="card-body">
         <div class="card-name">Learn to Skate — Emma <span class="confidence confirmed">✓ Confirmed</span></div>
-        <div class="card-sub">Foothills · Sat 9:00 AM <span class="streak-tag">🔁 4 weeks in a row</span></div>
+        <div class="card-sub">Edge · Sat 9:00 AM <span class="streak-tag">🔁 4 weeks in a row</span></div>
       </div>
       <div class="card-right"><div class="card-time">$15</div><span class="badge badge-amber">6 left</span></div>
     </div>
@@ -296,7 +300,7 @@
         <div class="card-icon">⛸️</div>
         <div class="card-body">
           <div class="card-name">Learn to Skate <span class="confidence confirmed">✓ Confirmed</span></div>
-          <div class="card-sub">Foothills · Fri 9:00 AM</div>
+          <div class="card-sub">Edge · Fri 9:00 AM</div>
         </div>
         <div class="card-right"><div class="card-time">$15</div><span class="badge badge-red">6 left</span></div>
       </div>
@@ -348,6 +352,13 @@
   // real page and close instead of navigating.
   let overlayShadowRoot = null;
 
+  // These only ever get called from scripts injected by openOverlay() below (see the text
+  // substitution there) — never from the host page's own code — so overlayShadowRoot is always
+  // valid whenever they actually run.
+  window.__rinksideGetById = (id) => overlayShadowRoot.getElementById ? overlayShadowRoot.getElementById(id) : overlayShadowRoot.querySelector('#' + id);
+  window.__rinksideQuerySelector = (sel) => overlayShadowRoot.querySelector(sel);
+  window.__rinksideQuerySelectorAll = (sel) => overlayShadowRoot.querySelectorAll(sel);
+
   async function openOverlay(url) {
     const backdrop = document.getElementById('overlay-backdrop');
     const host = document.getElementById('overlay-sheet-host');
@@ -373,12 +384,27 @@
 
       overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
 
-      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
-      // appended manually, which does execute it, against the shared global scope.
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is
+      // rebuilt and appended manually, which does execute it. Critical fix: Shadow DOM isolates
+      // the DOM tree, so document.getElementById/querySelector calls inside the embedded page's
+      // own script can't see its own elements at all — they'd search the host page's document,
+      // which doesn't contain them. Every embedded page (Checkout, Manage Booking, Session
+      // Detail, League Registration) relies on document.getElementById throughout, so without
+      // this fix their own internal buttons silently fail once loaded, even though the overlay
+      // itself opens correctly. Fixed with targeted text substitution on the script source,
+      // NOT scope-wrapping — wrapping in an IIFE would trap function declarations inside it,
+      // breaking every onclick="" attribute in the injected HTML, since inline handlers look up
+      // functions in global scope. Substitution keeps scripts executing at normal top-level
+      // scope (so their functions still become properly global) while only redirecting the
+      // specific document.* calls that need to reach into the shadow root instead.
       const scripts = overlayShadowRoot.querySelectorAll('script');
       scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
-        newScript.textContent = oldScript.textContent;
+        let src = oldScript.textContent;
+        src = src.replace(/document\.getElementById\(/g, 'window.__rinksideGetById(');
+        src = src.replace(/document\.querySelectorAll\(/g, 'window.__rinksideQuerySelectorAll(');
+        src = src.replace(/document\.querySelector\(/g, 'window.__rinksideQuerySelector(');
+        newScript.textContent = src;
         oldScript.replaceWith(newScript);
       });
     } catch (err) {
@@ -420,26 +446,31 @@
     }
   }
 
-  // Toggle between Rinks and Activities — this IS the Phase 4 IA consolidation decision, implemented
+  // Toggle between Activities, Rinks, and Leagues — this IS the Phase 4 IA consolidation decision, implemented
   const toggleRinks = document.getElementById('toggle-rinks');
   const toggleActivities = document.getElementById('toggle-activities');
+  const toggleAssociations = document.getElementById('toggle-associations');
   const panelRinks = document.getElementById('panel-rinks');
   const panelActivities = document.getElementById('panel-activities');
+  const panelAssociations = document.getElementById('panel-associations');
 
   function setView(view) {
-    const isRinks = view === 'rinks';
-    toggleRinks.classList.toggle('active', isRinks);
-    toggleActivities.classList.toggle('active', !isRinks);
-    panelRinks.classList.toggle('active', isRinks);
-    panelActivities.classList.toggle('active', !isRinks);
+    toggleRinks.classList.toggle('active', view === 'rinks');
+    toggleActivities.classList.toggle('active', view === 'activities');
+    toggleAssociations.classList.toggle('active', view === 'associations');
+    panelRinks.classList.toggle('active', view === 'rinks');
+    panelActivities.classList.toggle('active', view === 'activities');
+    panelAssociations.classList.toggle('active', view === 'associations');
   }
   toggleRinks.addEventListener('click', () => setView('rinks'));
   toggleActivities.addEventListener('click', () => setView('activities'));
+  toggleAssociations.addEventListener('click', () => setView('associations'));
 
-  // Activities is now the default view (Explore's default-tab decision, Aug 2026).
-  // Support deep-linking the other direction: rinkside-explore.html?view=rinks
+  // Activities is the default view (Explore's default-tab decision, Aug 2026).
+  // Support deep-linking: rinkside-explore.html?view=rinks or ?view=associations
   const params = new URLSearchParams(window.location.search);
   if (params.get('view') === 'rinks') setView('rinks');
+  if (params.get('view') === 'associations') setView('associations');
 
   document.getElementById('avatar').addEventListener('click', () => window.location.href = 'rinkside-profile.html');
   document.querySelectorAll('.filter-tab').forEach(tab => {

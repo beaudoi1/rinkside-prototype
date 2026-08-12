@@ -763,7 +763,7 @@
     <div class="recurring-strip-icon">🔁</div>
     <div class="recurring-strip-text">
       <div class="recurring-strip-title">Learn to Skate — Emma's weekly session</div>
-      <div class="recurring-strip-sub">Sat 9:00 AM · Foothills · 4 weeks in a row</div>
+      <div class="recurring-strip-sub">Sat 9:00 AM · Edge · 4 weeks in a row</div>
     </div>
     <span class="recurring-strip-arrow">›</span>
   </div>
@@ -900,63 +900,8 @@
 
   </div>
 
-  <div class="home-block" data-block="nearby">
-  <div class="section-header">
-    <p class="section-label">Nearby rinks</p>
-    <button class="view-more" aria-label="View more rinks">View more <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
-  </div>
-  <div class="rinks-list" role="list">
-
-    <div class="rink-row" role="listitem" tabindex="0">
-      <div class="rink-thumb">🏒</div>
-      <div class="rink-info">
-        <div class="rink-name">Apex Ice Arena</div>
-        <div class="rink-loc">Parker, CO</div>
-      </div>
-      <div class="rink-right">
-        <div class="rink-dist">0.4 mi</div>
-        <div class="rink-status-open">Open</div>
-      </div>
-    </div>
-
-    <div class="rink-row" role="listitem" tabindex="0">
-      <div class="rink-thumb">⛸️</div>
-      <div class="rink-info">
-        <div class="rink-name">Centennial Ice &amp; Events</div>
-        <div class="rink-loc">Centennial, CO</div>
-      </div>
-      <div class="rink-right">
-        <div class="rink-dist">3.1 mi</div>
-        <div class="rink-status-open">Open</div>
-      </div>
-    </div>
-
-    <div class="rink-row" role="listitem" tabindex="0">
-      <div class="rink-thumb">🥅</div>
-      <div class="rink-info">
-        <div class="rink-name">South Suburban Sports Complex</div>
-        <div class="rink-loc">Englewood, CO</div>
-      </div>
-      <div class="rink-right">
-        <div class="rink-dist">5.8 mi</div>
-        <div class="rink-status-closed">Opens 5 AM</div>
-      </div>
-    </div>
-
-    <div class="rink-row" role="listitem" tabindex="0">
-      <div class="rink-thumb">🏟️</div>
-      <div class="rink-info">
-        <div class="rink-name">Lone Tree Rec Center</div>
-        <div class="rink-loc">Lone Tree, CO</div>
-      </div>
-      <div class="rink-right">
-        <div class="rink-dist">7.2 mi</div>
-        <div class="rink-status-closed">Opens 6 AM</div>
-      </div>
-    </div>
-
-  </div>
-  </div>
+  <!-- "Nearby rinks" full list block removed, Aug 2026 — redundant with the "Rinks near me"
+       quick-card already above (data-block="rinks-quick"), which serves the same purpose. -->
 
   </div>
 
@@ -1028,11 +973,12 @@
   // ── Activity chips ──
   document.querySelectorAll('.activity-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      window.location.href = 'rinkside-explore.html?view=activities';
+      openOverlay('rinkside-checkout.html');
     });
   });
 
-  // ── View more — Activities ──
+  // ── View more — Activities (this one still goes to Explore's fuller list on purpose;
+  // individual chips book a specific session directly, "View more" is for browsing) ──
   document.querySelectorAll('.view-more')[0].addEventListener('click', e => {
     e.stopPropagation();
     window.location.href = 'rinkside-explore.html?view=activities';
@@ -1063,9 +1009,9 @@
   // the customizable blocks accordingly. Default (no preset saved) = the order already
   // built into the HTML, which is a neutral middle ground, not biased toward any persona.
   const LAYOUT_PRESETS = {
-    league:  ['teams', 'activities', 'schedule', 'rinks-quick', 'nearby'],
-    casual:  ['nearby', 'activities', 'rinks-quick', 'schedule', 'teams'],
-    parent:  ['schedule', 'activities', 'teams', 'rinks-quick', 'nearby'],
+    league:  ['teams', 'activities', 'schedule', 'rinks-quick'],
+    casual:  ['activities', 'rinks-quick', 'schedule', 'teams'],
+    parent:  ['schedule', 'activities', 'teams', 'rinks-quick'],
   };
 
   function applyHomeLayout() {
@@ -1082,6 +1028,13 @@
   applyHomeLayout();
 
   let overlayShadowRoot = null;
+
+  // These only ever get called from scripts injected by openOverlay() below (see the text
+  // substitution there) — never from the host page's own code — so overlayShadowRoot is always
+  // valid whenever they actually run.
+  window.__rinksideGetById = (id) => overlayShadowRoot.getElementById ? overlayShadowRoot.getElementById(id) : overlayShadowRoot.querySelector('#' + id);
+  window.__rinksideQuerySelector = (sel) => overlayShadowRoot.querySelector(sel);
+  window.__rinksideQuerySelectorAll = (sel) => overlayShadowRoot.querySelectorAll(sel);
 
   async function openOverlay(url) {
     const backdrop = document.getElementById('overlay-backdrop');
@@ -1108,12 +1061,27 @@
 
       overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
 
-      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
-      // appended manually, which does execute it, against the shared global scope.
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is
+      // rebuilt and appended manually, which does execute it. Critical fix: Shadow DOM isolates
+      // the DOM tree, so document.getElementById/querySelector calls inside the embedded page's
+      // own script can't see its own elements at all — they'd search the host page's document,
+      // which doesn't contain them. Every embedded page (Checkout, Manage Booking, Session
+      // Detail, League Registration) relies on document.getElementById throughout, so without
+      // this fix their own internal buttons silently fail once loaded, even though the overlay
+      // itself opens correctly. Fixed with targeted text substitution on the script source,
+      // NOT scope-wrapping — wrapping in an IIFE would trap function declarations inside it,
+      // breaking every onclick="" attribute in the injected HTML, since inline handlers look up
+      // functions in global scope. Substitution keeps scripts executing at normal top-level
+      // scope (so their functions still become properly global) while only redirecting the
+      // specific document.* calls that need to reach into the shadow root instead.
       const scripts = overlayShadowRoot.querySelectorAll('script');
       scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
-        newScript.textContent = oldScript.textContent;
+        let src = oldScript.textContent;
+        src = src.replace(/document\.getElementById\(/g, 'window.__rinksideGetById(');
+        src = src.replace(/document\.querySelectorAll\(/g, 'window.__rinksideQuerySelectorAll(');
+        src = src.replace(/document\.querySelector\(/g, 'window.__rinksideQuerySelector(');
+        newScript.textContent = src;
         oldScript.replaceWith(newScript);
       });
     } catch (err) {

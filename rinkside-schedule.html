@@ -627,7 +627,7 @@
         </div>
         <div class="session-info">
           <div class="session-name">Apex Wolves — Game</div>
-          <div class="session-sub">Foothills Ice Arena · Rink A</div>
+          <div class="session-sub">Edge Ice Arena · Rink A</div>
         <span class="participant-tag">👤 You</span>
           <span class="s-badge s-badge-purple">Team game</span>
         </div>
@@ -780,6 +780,13 @@
 
   let overlayShadowRoot = null;
 
+  // These only ever get called from scripts injected by openOverlay() below (see the text
+  // substitution there) — never from the host page's own code — so overlayShadowRoot is always
+  // valid whenever they actually run.
+  window.__rinksideGetById = (id) => overlayShadowRoot.getElementById ? overlayShadowRoot.getElementById(id) : overlayShadowRoot.querySelector('#' + id);
+  window.__rinksideQuerySelector = (sel) => overlayShadowRoot.querySelector(sel);
+  window.__rinksideQuerySelectorAll = (sel) => overlayShadowRoot.querySelectorAll(sel);
+
   async function openOverlay(url) {
     const backdrop = document.getElementById('overlay-backdrop');
     const host = document.getElementById('overlay-sheet-host');
@@ -805,12 +812,27 @@
 
       overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
 
-      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
-      // appended manually, which does execute it, against the shared global scope.
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is
+      // rebuilt and appended manually, which does execute it. Critical fix: Shadow DOM isolates
+      // the DOM tree, so document.getElementById/querySelector calls inside the embedded page's
+      // own script can't see its own elements at all — they'd search the host page's document,
+      // which doesn't contain them. Every embedded page (Checkout, Manage Booking, Session
+      // Detail, League Registration) relies on document.getElementById throughout, so without
+      // this fix their own internal buttons silently fail once loaded, even though the overlay
+      // itself opens correctly. Fixed with targeted text substitution on the script source,
+      // NOT scope-wrapping — wrapping in an IIFE would trap function declarations inside it,
+      // breaking every onclick="" attribute in the injected HTML, since inline handlers look up
+      // functions in global scope. Substitution keeps scripts executing at normal top-level
+      // scope (so their functions still become properly global) while only redirecting the
+      // specific document.* calls that need to reach into the shadow root instead.
       const scripts = overlayShadowRoot.querySelectorAll('script');
       scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
-        newScript.textContent = oldScript.textContent;
+        let src = oldScript.textContent;
+        src = src.replace(/document\.getElementById\(/g, 'window.__rinksideGetById(');
+        src = src.replace(/document\.querySelectorAll\(/g, 'window.__rinksideQuerySelectorAll(');
+        src = src.replace(/document\.querySelector\(/g, 'window.__rinksideQuerySelector(');
+        newScript.textContent = src;
         oldScript.replaceWith(newScript);
       });
     } catch (err) {

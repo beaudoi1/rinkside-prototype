@@ -650,51 +650,6 @@
     </div>
   </div>
 
-  <!-- Roster -->
-  <div class="section-header">
-    <p class="section-label">Roster — Apex Wolves</p>
-    <button class="section-action" id="full-roster-btn">
-      Full roster <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-  </div>
-  <div class="roster-scroll">
-    <div class="player-chip you" tabindex="0">
-      <div class="player-avatar">JR</div>
-      <div class="player-name">You</div>
-      <div class="player-pos">C / RW</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">MK</div>
-      <div class="player-name">M. Kim</div>
-      <div class="player-pos">Goalie</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">TS</div>
-      <div class="player-name">T. Shaw</div>
-      <div class="player-pos">D</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">AL</div>
-      <div class="player-name">A. Lopez</div>
-      <div class="player-pos">LW</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">RC</div>
-      <div class="player-name">R. Chen</div>
-      <div class="player-pos">D</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">PW</div>
-      <div class="player-name">P. Walsh</div>
-      <div class="player-pos">RW</div>
-    </div>
-    <div class="player-chip" tabindex="0">
-      <div class="player-avatar">+8</div>
-      <div class="player-name">More</div>
-      <div class="player-pos">players</div>
-    </div>
-  </div>
-
   <!-- Upcoming games -->
   <div class="section-header">
     <p class="section-label">Upcoming games &amp; practices</p>
@@ -764,7 +719,7 @@
         <span class="game-vs">vs</span>
         <span class="game-team">Blizzard FC</span>
       </div>
-      <div class="game-meta">Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM</div>
+      <div class="game-meta">Sat Jun 28 · Edge Ice Arena · Rink A · 7:00 PM</div>
     </div>
 
   </div>
@@ -854,7 +809,7 @@
         { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Ice Hawks', meta:'Sat Jun 14 · South Suburban Sports · Rink B · 8:00 PM', homeAway:'away' },
         { type:'practice', typeClass:'practice', badge:'game-badge-blue', badgeTeam:'Apex Wolves', team1:'Team Practice', vs:'', team2:'', meta:'Tue Jun 17 · Apex Ice Arena · Rink A · 6:00 AM', homeAway:null },
         { type:'scrimmage', typeClass:'scrimmage', badge:'game-badge-amber', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Night Owls', meta:'Sat Jun 21 · Apex Ice Arena · Rink B · 9:00 PM', homeAway:'home' },
-        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Blizzard FC', meta:'Sat Jun 28 · Foothills Ice Arena · Rink A · 7:00 PM', homeAway:'away' },
+        { type:'game', typeClass:'game', badge:'game-badge-purple', badgeTeam:'Apex Wolves', team1:'Apex Wolves', vs:'vs', team2:'Blizzard FC', meta:'Sat Jun 28 · Edge Ice Arena · Rink A · 7:00 PM', homeAway:'away' },
       ],
       stats: [
         { label:'Goals scored', val:'47', sub:'4.3 per game', highlight:true },
@@ -922,23 +877,14 @@
     document.querySelector('.next-game-time').textContent = d.nextTime;
     document.querySelector('.next-game-pill').textContent = d.nextPill;
 
-    // Roster label
-    document.querySelector('.section-header .section-label').textContent = d.rosterLabel;
-
-    // Roster chips
-    const rosterScroll = document.querySelector('.roster-scroll');
-    rosterScroll.innerHTML = d.roster.map(p => `
-      <div class="player-chip ${p.you ? 'you' : ''}" tabindex="0">
-        <div class="player-avatar">${p.initials}</div>
-        <div class="player-name">${p.name}</div>
-        <div class="player-pos">${p.pos}</div>
-      </div>
-    `).join('');
-    rosterScroll.querySelectorAll('.player-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const name = chip.querySelector('.player-name').textContent;
-        showToast(name === 'You' ? "👤 That's you!" : `👤 Viewing ${name}…`);
-      });
+    // Selector button — this was the real bug: switching teams updated the page content but
+    // never updated the selector button's own label, making it look like the dropdown "didn't
+    // update" even though the rest of the page was correctly re-rendering.
+    document.getElementById('selector-logo').textContent = d.logo;
+    document.getElementById('selector-name').textContent = d.name;
+    document.getElementById('selector-sub').textContent = d.sub;
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.team === key);
     });
 
     // Games list
@@ -1062,7 +1008,6 @@
   document.getElementById('avatar').addEventListener('click', () => window.location.href = 'rinkside-profile.html');
   document.getElementById('hero-card').addEventListener('click', () => window.location.href = 'rinkside-team-profile.html');
   document.getElementById('hero-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('hero-card').click(); });
-  document.getElementById('full-roster-btn').addEventListener('click', e => { e.stopPropagation(); showToast('👥 Viewing full roster…'); });
   document.getElementById('full-schedule-btn').addEventListener('click', e => { e.stopPropagation(); showToast('📅 Viewing full schedule…'); });
   document.getElementById('join-card').addEventListener('click', () => showToast('➕ Find teams near you…'));
   document.getElementById('join-card').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('join-card').click(); });
