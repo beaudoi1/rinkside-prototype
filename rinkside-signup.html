@@ -42,6 +42,11 @@
   .field input::placeholder { color: var(--text-dim); }
   .field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   .field-error { font-size: 11px; color: var(--red); margin-top: 6px; display: none; }
+
+  .under13-block { display: none; background: var(--rink-mid); border: 1px solid rgba(248,113,113,0.3); border-radius: var(--radius, 16px); padding: 18px; margin: 4px 0 16px; }
+  .under13-title { font-family: var(--font-display, 'Syne', sans-serif); font-size: 14px; font-weight: 700; color: var(--red); margin-bottom: 8px; }
+  .under13-text { font-size: 12px; color: var(--text-muted); font-weight: 300; line-height: 1.6; margin-bottom: 14px; }
+  .under13-btn { display: block; text-align: center; padding: 12px; border-radius: 10px; background: var(--accent); color: var(--rink-dark); font-weight: 700; font-size: 13px; text-decoration: none; }
   .field.invalid input { border-color: var(--red); }
   .field.invalid .field-error { display: block; }
 
@@ -79,6 +84,11 @@
           <label for="name">Full Name</label>
           <input type="text" id="name" placeholder="Jordan Rivera" required>
         </div>
+        <div class="field" id="dob-field">
+          <label for="signup-dob">Date of Birth</label>
+          <input type="date" id="signup-dob" required>
+          <p class="field-error" id="dob-error">Rinkside accounts are for adults and teens 13+</p>
+        </div>
         <div class="field" id="email-field">
           <label for="email">Email</label>
           <input type="email" id="email" placeholder="you@email.com" required>
@@ -91,6 +101,11 @@
         </div>
         <button type="submit" class="submit-btn">Continue</button>
       </form>
+      <div class="under13-block" id="under13-block" style="display:none">
+        <p class="under13-title">Ask a parent or guardian instead</p>
+        <p class="under13-text">Rinkside accounts are for people 13 and up. If you're younger than that, a parent or guardian can add you as a dependent on their own account — you'll still show up in schedules and team rosters, they'll just be the ones managing registration and payment.</p>
+        <a class="under13-btn" href="rinkside-welcome.html">Back to start</a>
+      </div>
       <p class="terms">By creating an account you agree to our Terms and Privacy Policy</p>
       <p class="login-link">Already have an account? <a href="rinkside-login.html">Log in</a></p>
     </div>
@@ -142,8 +157,40 @@
     btn.textContent = show ? 'Hide' : 'Show';
   }
 
+  function calculateAge(dobString) {
+    const dob = new Date(dobString);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  }
+
   function handleStep1(e) {
     e.preventDefault();
+
+    // Age gate — COPPA's actual threshold is 13, not 18. Rinkside's whole data model assumes a
+    // parent creates the primary account and adds dependents; someone under 13 creating their
+    // own primary account would invert that and put Rinkside itself, not a parent, in the
+    // COPPA-covered role. Blocked here rather than left as an assumption nothing enforces.
+    const dobInput = document.getElementById('signup-dob');
+    const dobField = document.getElementById('dob-field');
+    const under13Block = document.getElementById('under13-block');
+    const form = e.target;
+
+    if (dobInput.value) {
+      const age = calculateAge(dobInput.value);
+      if (age < 13) {
+        dobField.classList.add('invalid');
+        form.style.display = 'none';
+        under13Block.style.display = 'block';
+        return false;
+      }
+    }
+    dobField.classList.remove('invalid');
+    under13Block.style.display = 'none';
+    form.style.display = '';
+
     const email = document.getElementById('email');
     const emailField = document.getElementById('email-field');
     const valid = /\S+@\S+\.\S+/.test(email.value);

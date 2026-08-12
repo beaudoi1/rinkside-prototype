@@ -179,7 +179,7 @@
       <span id="follow-icon">☆</span> <span id="follow-text">Follow this team</span>
     </button>
 
-    <button onclick="openOverlay('rinkside-league-registration.html')" style="width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:var(--rink-dark); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); margin-bottom:10px;">
+    <button id="register-season-btn" onclick="openOverlay('rinkside-league-registration.html')" style="width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:var(--rink-dark); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); margin-bottom:10px;">
       Register for Next Season
     </button>
 
@@ -276,6 +276,16 @@
     // team on their account. Littleton Hawks is a kid's team he's not even a player on, so the
     // captain-only management link has no business showing here at all.
     document.getElementById('manage-team-link').style.display = 'none';
+
+    // Real bug fix: "Register for Next Season" was hardcoded to Edge's adult rec league
+    // registration regardless of which team was being viewed. Littleton Hawks registers through
+    // Littleton Hockey Association, not Edge — routing there instead, since the Association
+    // Profile page already has real, correct content for this (its "Spring 2026 Registration
+    // Opens" event), rather than showing adult league content on a kids' team's page.
+    const registerBtn = document.getElementById('register-season-btn');
+    registerBtn.setAttribute('onclick', "window.location.href='rinkside-association-profile.html'");
+    registerBtn.textContent = 'Register for Next Season — via LHA';
+
     document.title = 'Rinkside — Littleton Hawks';
     document.getElementById('hero-banner').style.background = 'linear-gradient(135deg, #1a2e1e, #234030)';
     document.getElementById('team-name').textContent = 'Littleton Hawks';

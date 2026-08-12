@@ -126,6 +126,11 @@
   .dep-manage-input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 12.5px; margin-bottom: 10px; }
   .dep-manage-input::placeholder { color: var(--text-dim); }
   .dep-manage-actions { display: flex; gap: 8px; }
+  .self-service-row { background: rgba(56,189,248,0.06); border: 1px solid var(--border-mid); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  .self-service-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); cursor: pointer; margin-bottom: 6px; }
+  .self-service-toggle-label input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .self-service-note { font-size: 10.5px; color: var(--text-dim); font-weight: 300; line-height: 1.5; margin-left: 24px; }
+  .self-service-locked { font-size: 11px; color: var(--text-dim); font-weight: 300; font-style: italic; margin-bottom: 12px; }
   .dep-manage-remove { flex: 1; padding: 10px; border-radius: 8px; background: none; border: 1.5px solid rgba(248,113,113,0.4); color: #f87171; font-weight: 600; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-manage-save { flex: 1; padding: 10px; border-radius: 8px; background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-field-label { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
@@ -496,9 +501,19 @@
           <p class="dep-field-label">First &amp; last name</p>
           <input type="text" class="dep-manage-input" id="dep-manage-name">
           <p class="dep-field-label">Date of birth</p>
-          <input type="date" class="dep-manage-input" id="dep-manage-dob" aria-label="Date of birth">
+          <input type="date" class="dep-manage-input" id="dep-manage-dob" aria-label="Date of birth" onchange="checkSelfServiceEligibility()">
           <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
           <input type="text" class="dep-manage-input" id="dep-manage-usah" placeholder="e.g. 12345678">
+
+          <div class="self-service-row" id="self-service-row" style="display:none">
+            <label class="self-service-toggle-label">
+              <input type="checkbox" id="self-service-toggle">
+              <span>Give <span id="self-service-name">them</span> their own login</span>
+            </label>
+            <p class="self-service-note">View-only access to their own schedule and team info. They can't register for anything, sign a waiver, or touch payment — that stays with you. Available from age 13.</p>
+          </div>
+          <p class="self-service-locked" id="self-service-locked" style="display:none">Self-service login becomes available once this profile turns 13.</p>
+
           <div class="dep-manage-actions">
             <button class="dep-manage-remove" onclick="removeDependent()">Remove profile</button>
             <button class="dep-manage-save" onclick="saveDependentEdit()">Save changes</button>
@@ -663,6 +678,8 @@
       activeDepCard = card;
       document.getElementById('dep-manage-name').value = card.dataset.name;
       document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
+      document.getElementById('self-service-name').textContent = card.dataset.name.split(' ')[0];
+      checkSelfServiceEligibility(parseInt(card.dataset.age) || null);
       const panel = document.getElementById('dep-manage-panel');
       // Move the panel right after whichever card was tapped
       card.after(panel);
@@ -670,6 +687,26 @@
     });
     card.addEventListener('keydown', e => { if (e.key === 'Enter') card.click(); });
   });
+
+  // ── Self-service access eligibility (Aug 2026) — demonstrates the restricted-permission-tier
+  // concept discussed for teen self-management: a dependent can get their own view-only login
+  // once they're 13+, but never before, keeping under-13 dependents fully parent-managed with no
+  // COPPA-relevant independent account of their own. ──
+  function checkSelfServiceEligibility(knownAge) {
+    const dobInput = document.getElementById('dep-manage-dob');
+    let age = knownAge;
+    if (dobInput.value) {
+      const dob = new Date(dobInput.value);
+      const today = new Date();
+      age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+    }
+    const eligible = age !== null && age >= 13;
+    document.getElementById('self-service-row').style.display = eligible ? 'block' : 'none';
+    document.getElementById('self-service-locked').style.display = eligible ? 'none' : 'block';
+    if (!eligible) document.getElementById('self-service-toggle').checked = false;
+  }
 
   function saveDependentEdit() {
     if (!activeDepCard) return;
@@ -679,7 +716,10 @@
     activeDepCard.dataset.usah = document.getElementById('dep-manage-usah').value.trim();
     activeDepCard.querySelector('.kid-name').textContent = newName;
     document.getElementById('dep-manage-panel').classList.remove('show');
-    showToast(`✓ ${newName}'s profile updated`);
+    const selfServiceOn = document.getElementById('self-service-toggle').checked;
+    showToast(selfServiceOn
+      ? `✓ ${newName}'s profile updated — self-service login set up, view-only`
+      : `✓ ${newName}'s profile updated`);
   }
 
   function removeDependent() {
