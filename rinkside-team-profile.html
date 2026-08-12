@@ -117,9 +117,7 @@
     position: fixed; bottom: 0; left: 50%;
     transform: translateX(-50%);
     width: 100%; max-width: 420px;
-    background: rgba(11,24,36,0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #0f1f30;
     border-top: 1px solid var(--border, rgba(56,189,248,0.12));
     padding: 10px 0 20px;
     display: flex; z-index: 100;
@@ -141,6 +139,16 @@
   @media (min-width: 768px) { .bottom-nav { display: none !important; } }
 
 <!-- BOTTOM-NAV-INJECTED -->
+
+  /* ── Fetch-and-inject overlay shell (Aug 2026) ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 500; overflow-y: auto;
+  }
+  .overlay-backdrop.show { display: block; animation: overlayFadeIn 0.2s ease both; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-sheet-host { max-width: 420px; margin: 10vh auto 0; }
+  @media (min-width: 768px) { .overlay-sheet-host { max-width: 480px; margin-top: 6vh; } }
 </style>
 </head>
 <body>
@@ -171,11 +179,9 @@
       <span id="follow-icon">☆</span> <span id="follow-text">Follow this team</span>
     </button>
 
-    <a href="rinkside-league-registration.html" style="text-decoration:none; display:block; margin-bottom:10px;">
-      <button style="width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:var(--rink-dark); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body);">
-        Register for Next Season
-      </button>
-    </a>
+    <button onclick="openOverlay('rinkside-league-registration.html')" style="width:100%; padding:14px; border-radius:10px; background:var(--accent); border:none; color:var(--rink-dark); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); margin-bottom:10px;">
+      Register for Next Season
+    </button>
 
     <a href="rinkside-team-management.html" id="manage-team-link" style="text-decoration:none; display:block; margin-bottom:20px;">
       <button style="width:100%; padding:14px; border-radius:10px; background:none; border:1.5px solid var(--accent-purple); color:var(--accent-purple); font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body);">
@@ -302,6 +308,67 @@
       </div>
     `;
   }
+
+  let overlayShadowRoot = null;
+
+  async function openOverlay(url) {
+    const backdrop = document.getElementById('overlay-backdrop');
+    const host = document.getElementById('overlay-sheet-host');
+
+    if (!overlayShadowRoot) {
+      overlayShadowRoot = host.attachShadow({ mode: 'open' });
+    }
+    overlayShadowRoot.innerHTML = '<div style="background:var(--rink-panel,#182f42);border-radius:24px;padding:40px;text-align:center;color:#7aa3b8;font-family:sans-serif;">Loading…</div>';
+    backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    window.__rinksideOverlayMode = true;
+    history.pushState({ overlay: url }, '', '');
+
+    try {
+      const res = await fetch(url);
+      const html = await res.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+      // Pull in fonts the embedded page expects (Shadow DOM doesn't inherit <link> from the host)
+      const fontLinks = [...parsed.querySelectorAll('link[href*="fonts.google"]')].map(l => l.outerHTML).join('');
+      const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      const bodyContent = parsed.body.innerHTML;
+
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
+
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
+      // appended manually, which does execute it, against the shared global scope.
+      const scripts = overlayShadowRoot.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        oldScript.replaceWith(newScript);
+      });
+    } catch (err) {
+      overlayShadowRoot.innerHTML = '<div style="background:#182f42;border-radius:24px;padding:40px;text-align:center;color:#f87171;font-family:sans-serif;">Couldn\'t load this — try again.</div>';
+    }
+  }
+
+  function closeOverlay() {
+    const backdrop = document.getElementById('overlay-backdrop');
+    backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    window.__rinksideOverlayMode = false;
+    if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+    if (history.state && history.state.overlay) history.back();
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!(history.state && history.state.overlay)) {
+      const backdrop = document.getElementById('overlay-backdrop');
+      if (backdrop.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        window.__rinksideOverlayMode = false;
+        if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+      }
+    }
+  });
 </script>
 <nav class="bottom-nav" aria-label="Main navigation">
   <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
@@ -311,5 +378,8 @@
   <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved Rinks</span></a>
 </nav>
 
+<div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
+  <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
+</div>
 </body>
 </html>

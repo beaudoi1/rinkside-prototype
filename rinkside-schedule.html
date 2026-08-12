@@ -292,9 +292,7 @@
     position: fixed; bottom: 0; left: 50%;
     transform: translateX(-50%);
     width: 100%; max-width: 420px;
-    background: rgba(11,24,36,0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #0f1f30;
     border-top: 1px solid var(--border);
     padding: 10px 0 20px;
     display: flex; z-index: 100;
@@ -376,6 +374,16 @@
   /* ============ END RESPONSIVE SIDEBAR ============ */
 
 <!-- RESPONSIVE-INJECTED -->
+
+  /* ── Fetch-and-inject overlay shell (Aug 2026) ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 500; overflow-y: auto;
+  }
+  .overlay-backdrop.show { display: block; animation: overlayFadeIn 0.2s ease both; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-sheet-host { max-width: 420px; margin: 10vh auto 0; }
+  @media (min-width: 768px) { .overlay-sheet-host { max-width: 480px; margin-top: 6vh; } }
 </style>
 </head>
 <body>
@@ -738,7 +746,7 @@
 
   // ── Next up card ──
   document.getElementById('next-card').addEventListener('click', () =>
-    window.location.href = 'rinkside-manage-booking.html');
+    openOverlay('rinkside-manage-booking.html'));
 
   // ── View more ──
   const viewMoreBtn = document.getElementById('view-more-btn');
@@ -759,7 +767,7 @@
       if (row._wired) return;
       row._wired = true;
       row.addEventListener('click', () => {
-        window.location.href = 'rinkside-manage-booking.html';
+        openOverlay('rinkside-manage-booking.html');
       });
       row.addEventListener('keydown', e => { if (e.key === 'Enter') row.click(); });
     });
@@ -769,6 +777,70 @@
   // ── Avatar ──
   document.getElementById('avatar').addEventListener('click', () =>
     window.location.href = 'rinkside-profile.html');
+
+  let overlayShadowRoot = null;
+
+  async function openOverlay(url) {
+    const backdrop = document.getElementById('overlay-backdrop');
+    const host = document.getElementById('overlay-sheet-host');
+
+    if (!overlayShadowRoot) {
+      overlayShadowRoot = host.attachShadow({ mode: 'open' });
+    }
+    overlayShadowRoot.innerHTML = '<div style="background:var(--rink-panel,#182f42);border-radius:24px;padding:40px;text-align:center;color:#7aa3b8;font-family:sans-serif;">Loading…</div>';
+    backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    window.__rinksideOverlayMode = true;
+    history.pushState({ overlay: url }, '', '');
+
+    try {
+      const res = await fetch(url);
+      const html = await res.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+      // Pull in fonts the embedded page expects (Shadow DOM doesn't inherit <link> from the host)
+      const fontLinks = [...parsed.querySelectorAll('link[href*="fonts.google"]')].map(l => l.outerHTML).join('');
+      const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      const bodyContent = parsed.body.innerHTML;
+
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
+
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
+      // appended manually, which does execute it, against the shared global scope.
+      const scripts = overlayShadowRoot.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        oldScript.replaceWith(newScript);
+      });
+    } catch (err) {
+      overlayShadowRoot.innerHTML = '<div style="background:#182f42;border-radius:24px;padding:40px;text-align:center;color:#f87171;font-family:sans-serif;">Couldn\'t load this — try again.</div>';
+    }
+  }
+
+  function closeOverlay() {
+    const backdrop = document.getElementById('overlay-backdrop');
+    backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    window.__rinksideOverlayMode = false;
+    if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+    if (history.state && history.state.overlay) history.back();
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!(history.state && history.state.overlay)) {
+      const backdrop = document.getElementById('overlay-backdrop');
+      if (backdrop.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        window.__rinksideOverlayMode = false;
+        if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+      }
+    }
+  });
 </script>
+<div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
+  <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
+</div>
 </body>
 </html>

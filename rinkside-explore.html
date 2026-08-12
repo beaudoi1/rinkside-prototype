@@ -96,7 +96,7 @@
   .view-panel { display: none; }
   .view-panel.active { display: block; }
 
-  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: rgba(11,24,36,0.92); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding: 10px 0 20px; display: flex; z-index: 100; }
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #0f1f30; border-top: 1px solid var(--border); padding: 10px 0 20px; display: flex; z-index: 100; }
   .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; text-decoration: none; }
   .nav-item svg { width: 20px; height: 20px; }
   .nav-item span { font-size: 9px; font-weight: 400; }
@@ -107,6 +107,16 @@
   .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; }
+
+  /* ── Fetch-and-inject overlay shell (Aug 2026) ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 500; overflow-y: auto;
+  }
+  .overlay-backdrop.show { display: block; animation: overlayFadeIn 0.2s ease both; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-sheet-host { max-width: 420px; margin: 10vh auto 0; }
+  @media (min-width: 768px) { .overlay-sheet-host { max-width: 480px; margin-top: 6vh; } }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
@@ -235,7 +245,7 @@
       </div>
       <div class="card-right"><span class="badge badge-green">View</span></div>
     </div>
-    <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-league-registration.html'">
+    <div class="list-card" tabindex="0" onclick="openOverlay('rinkside-league-registration.html')">
       <div class="card-icon">🏒</div>
       <div class="card-body">
         <div class="card-name">Adult Hockey — Edge <span class="confidence confirmed">✓ Confirmed</span></div>
@@ -256,14 +266,14 @@
     </div>
 
     <h2 class="section-label">Live now</h2>
-    <div class="hero-card" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+    <div class="hero-card" tabindex="0" onclick="openOverlay('rinkside-checkout.html')">
       <div class="hero-eyebrow"><span class="live-dot"></span> Happening now</div>
       <div class="hero-title">Public Skate — Evening</div>
       <div class="hero-sub">Apex Ice Arena · Ends 9:00 PM</div>
     </div>
 
     <h2 class="section-label">Your recurring sessions</h2>
-    <div class="list-card recurring-card" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+    <div class="list-card recurring-card" tabindex="0" onclick="openOverlay('rinkside-checkout.html')">
       <div class="card-icon">🏒</div>
       <div class="card-body">
         <div class="card-name">Stick &amp; Puck <span class="confidence confirmed">✓ Confirmed</span></div>
@@ -271,7 +281,7 @@
       </div>
       <div class="card-right"><div class="card-time">$8</div><span class="badge badge-amber">10 left</span></div>
     </div>
-    <div class="list-card recurring-card" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+    <div class="list-card recurring-card" tabindex="0" onclick="openOverlay('rinkside-checkout.html')">
       <div class="card-icon">⛸️</div>
       <div class="card-body">
         <div class="card-name">Learn to Skate — Emma <span class="confidence confirmed">✓ Confirmed</span></div>
@@ -282,7 +292,7 @@
 
     <h2 class="section-label">All activities</h2>
     <div class="list" id="activities-list">
-      <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-checkout.html'">
+      <div class="list-card" tabindex="0" onclick="openOverlay('rinkside-checkout.html')">
         <div class="card-icon">⛸️</div>
         <div class="card-body">
           <div class="card-name">Learn to Skate <span class="confidence confirmed">✓ Confirmed</span></div>
@@ -290,7 +300,7 @@
         </div>
         <div class="card-right"><div class="card-time">$15</div><span class="badge badge-red">6 left</span></div>
       </div>
-      <div class="list-card" tabindex="0" onclick="window.location.href='rinkside-session-full.html'">
+      <div class="list-card" tabindex="0" onclick="openOverlay('rinkside-session-full.html')">
         <div class="card-icon">🥅</div>
         <div class="card-body">
           <div class="card-name">Pickup Hockey <span class="confidence unconfirmed">◐ Unconfirmed</span></div>
@@ -314,6 +324,10 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
+  <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
+</div>
+
 <script>
   let toastTimer;
   function showToast(msg) {
@@ -323,6 +337,75 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
+
+  // ── Fetch-and-inject overlay (Aug 2026) ── Proof case: Explore → Checkout. Real fetched
+  // content, real Shadow DOM isolation (not a styled iframe substitute) — genuinely solves the
+  // CSS/ID collision risk that made this approach worth the upfront cost, since class names like
+  // .page, .content, .toast are reused across nearly every file in this prototype. Shadow DOM
+  // isolates style and the DOM tree; it does NOT isolate JS scope, since script tags inside a
+  // shadow root still execute against the global window — handled below by flagging overlay mode
+  // so the embedded page's own back-button logic can detect it's inside an overlay rather than a
+  // real page and close instead of navigating.
+  let overlayShadowRoot = null;
+
+  async function openOverlay(url) {
+    const backdrop = document.getElementById('overlay-backdrop');
+    const host = document.getElementById('overlay-sheet-host');
+
+    if (!overlayShadowRoot) {
+      overlayShadowRoot = host.attachShadow({ mode: 'open' });
+    }
+    overlayShadowRoot.innerHTML = '<div style="background:var(--rink-panel,#182f42);border-radius:24px;padding:40px;text-align:center;color:#7aa3b8;font-family:sans-serif;">Loading…</div>';
+    backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    window.__rinksideOverlayMode = true;
+    history.pushState({ overlay: url }, '', '');
+
+    try {
+      const res = await fetch(url);
+      const html = await res.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+      // Pull in fonts the embedded page expects (Shadow DOM doesn't inherit <link> from the host)
+      const fontLinks = [...parsed.querySelectorAll('link[href*="fonts.google"]')].map(l => l.outerHTML).join('');
+      const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      const bodyContent = parsed.body.innerHTML;
+
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
+
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is rebuilt and
+      // appended manually, which does execute it, against the shared global scope.
+      const scripts = overlayShadowRoot.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        oldScript.replaceWith(newScript);
+      });
+    } catch (err) {
+      overlayShadowRoot.innerHTML = '<div style="background:#182f42;border-radius:24px;padding:40px;text-align:center;color:#f87171;font-family:sans-serif;">Couldn\'t load this — try again.</div>';
+    }
+  }
+
+  function closeOverlay() {
+    const backdrop = document.getElementById('overlay-backdrop');
+    backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    window.__rinksideOverlayMode = false;
+    if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+    if (history.state && history.state.overlay) history.back();
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!(history.state && history.state.overlay)) {
+      const backdrop = document.getElementById('overlay-backdrop');
+      if (backdrop.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        window.__rinksideOverlayMode = false;
+        if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+      }
+    }
+  });
 
   // FR-40: Tier 1 (partner) rinks route to Rinkside's own Checkout — there's a real data
   // relationship to book against. Tier 3 (non-partner, unconfirmed) rinks have no such
