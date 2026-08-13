@@ -131,6 +131,19 @@
   .self-service-toggle-label input { width: 16px; height: 16px; accent-color: var(--accent); }
   .self-service-note { font-size: 10.5px; color: var(--text-dim); font-weight: 300; line-height: 1.5; margin-left: 24px; }
   .self-service-locked { font-size: 11px; color: var(--text-dim); font-weight: 300; font-style: italic; margin-bottom: 12px; }
+
+  .ss-divider { border-top: 1px solid var(--border-mid); margin: 12px 0; }
+  .ss-label { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .ss-hint { font-size: 10.5px; color: var(--text-dim); font-weight: 300; line-height: 1.5; margin: 4px 0 8px; margin-left: 24px; }
+  .ss-invite-box { display: flex; align-items: center; gap: 8px; background: var(--rink-panel); border: 1px dashed var(--border-mid); border-radius: 8px; padding: 10px 12px; margin-left: 24px; margin-bottom: 4px; }
+  .ss-invite-code { flex: 1; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 1px; color: var(--accent); }
+  .ss-invite-regen { background: none; border: 1px solid var(--border-mid); color: var(--text-muted); font-size: 10.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px; cursor: pointer; font-family: var(--font-body); }
+  .ss-reset-btn { margin-left: 24px; background: none; border: 1px solid rgba(248,113,113,0.4); color: var(--red, #f87171); font-size: 11px; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; font-family: var(--font-body); }
+  .ss-balance-row { display: flex; align-items: center; gap: 10px; margin-left: 24px; margin-bottom: 4px; }
+  .ss-balance-amount { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--green, #4ade80); }
+  .ss-add-funds-btn { background: var(--accent); border: none; color: var(--rink-dark); font-size: 10.5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-family: var(--font-body); }
+  .ss-rink-check { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-primary); margin-left: 24px; margin-bottom: 8px; cursor: pointer; }
+  .ss-rink-check input { width: 15px; height: 15px; accent-color: var(--accent); }
   .dep-manage-remove { flex: 1; padding: 10px; border-radius: 8px; background: none; border: 1.5px solid rgba(248,113,113,0.4); color: #f87171; font-weight: 600; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-manage-save { flex: 1; padding: 10px; border-radius: 8px; background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-field-label { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
@@ -230,6 +243,77 @@
     .page { max-width: 760px; margin-left: calc(var(--sidebar-w) + (100% - var(--sidebar-w) - 760px) / 2); }
   }
   /* ============ END RESPONSIVE SIDEBAR ============ */
+
+
+
+  /* ── Chat widget (Aug 2026) ── */
+  .chat-bubble {
+    position: fixed; bottom: 90px; right: 16px; z-index: 250;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(56,189,248,0.4); cursor: pointer;
+  }
+  .chat-bubble:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .chat-bubble-badge {
+    position: absolute; top: -3px; right: -3px; background: var(--red, #f87171); color: #fff;
+    font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--rink-dark, #0b1824);
+  }
+  @media (min-width: 768px) { .chat-bubble { right: 24px; bottom: 24px; } }
+
+  .chat-panel {
+    display: none; position: fixed; bottom: 152px; right: 16px; z-index: 251;
+    width: min(340px, calc(100vw - 32px)); height: min(460px, calc(100vh - 200px));
+    background: var(--rink-mid, #132233); border: 1px solid var(--border-mid, rgba(56,189,248,0.22));
+    border-radius: 18px; box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+    flex-direction: column; overflow: hidden;
+  }
+  .chat-panel.open { display: flex; animation: chatPanelUp 0.2s ease both; }
+  @keyframes chatPanelUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @media (min-width: 768px) { .chat-panel { bottom: 88px; right: 24px; } }
+
+  .chat-view { display: none; flex-direction: column; height: 100%; }
+  .chat-view.active { display: flex; }
+
+  .chat-panel-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0;
+  }
+  .chat-panel-title { flex: 1; font-family: var(--font-display, 'Syne', sans-serif); font-size: 14px; font-weight: 700; color: var(--text-primary, #f0f8ff); }
+  .chat-close-btn, .chat-back-btn {
+    background: none; border: none; color: var(--text-dim, #7aa3b8); font-size: 16px; cursor: pointer;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .chat-back-btn { font-size: 22px; }
+  .chat-close-btn:focus-visible, .chat-back-btn:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
+
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .chat-list-item { display: flex; gap: 10px; padding: 10px 8px; border-radius: 10px; cursor: pointer; align-items: center; }
+  .chat-list-item:hover { background: rgba(255,255,255,0.03); }
+  .chat-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chat-avatar.team { background: rgba(167,139,250,0.15); }
+  .chat-avatar.assoc { background: rgba(251,191,36,0.15); }
+  .chat-avatar.session { background: rgba(56,189,248,0.15); }
+  .chat-list-body { flex: 1; min-width: 0; }
+  .chat-list-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary, #f0f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-type-tag { font-size: 8.5px; font-weight: 700; color: var(--text-dim, #7aa3b8); text-transform: uppercase; letter-spacing: 0.04em; margin-left: 4px; }
+  .chat-list-preview { font-size: 11px; color: var(--text-muted, #7fa9c0); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .chat-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .chat-list-time { font-size: 9.5px; color: var(--text-dim, #7aa3b8); }
+  .chat-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent, #38bdf8); }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg { max-width: 78%; padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.4; }
+  .chat-msg.theirs { align-self: flex-start; background: var(--rink-panel, #182f42); color: var(--text-primary, #f0f8ff); border-bottom-left-radius: 4px; }
+  .chat-msg.mine { align-self: flex-end; background: var(--accent, #38bdf8); color: var(--rink-dark, #0b1824); border-bottom-right-radius: 4px; }
+  .chat-msg-sender { font-size: 9.5px; font-weight: 700; color: var(--accent, #38bdf8); margin-bottom: 2px; }
+
+  .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0; }
+  .chat-input { flex: 1; background: var(--rink-panel, #182f42); border: 1px solid var(--border-mid, rgba(56,189,248,0.22)); border-radius: 999px; padding: 9px 14px; color: var(--text-primary, #f0f8ff); font-family: var(--font-body, 'DM Sans', sans-serif); font-size: 12.5px; }
+  .chat-input::placeholder { color: var(--text-dim, #7aa3b8); }
+  .chat-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824); cursor: pointer; flex-shrink: 0; }
+  .chat-send-btn:focus-visible, .chat-input:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
 
 
 </style>
@@ -343,9 +427,9 @@
         <span class="sub-row-label">Password</span>
         <span class="sub-row-value">Change <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
-      <div class="sub-row" tabindex="0" data-toast="💳 Managing payment methods…">
-        <span class="sub-row-label">Payment methods</span>
-        <span class="sub-row-value">•••• 4242 <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      <div class="sub-row" tabindex="0" data-toast="🔒 Opening Stripe…">
+        <span class="sub-row-label">Payment</span>
+        <span class="sub-row-value">✓ Connected via Stripe <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
       <div class="sub-row" tabindex="0" data-toast="🔁 Managing auto-pay plans…">
         <span class="sub-row-label">Auto-pay &amp; payment plans</span>
@@ -356,11 +440,19 @@
         <span class="sub-row-value">Rinkside Pro <svg class="sub-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </div>
       <div class="sub-row" style="cursor:default; flex-direction:column; align-items:flex-start; gap:8px;">
-        <span class="sub-row-label">Notification channel</span>
+        <span class="sub-row-label">Notification channels <span style="font-weight:300;color:var(--text-dim);text-transform:none;letter-spacing:0">— pick as many as you'd like</span></span>
         <div class="channel-chips">
           <button class="channel-chip active" id="channel-text" onclick="setChannel('text')">Text</button>
           <button class="channel-chip" id="channel-email" onclick="setChannel('email')">Email</button>
           <button class="channel-chip" id="channel-push" onclick="setChannel('push')">Push</button>
+        </div>
+      </div>
+      <div class="sub-row" style="cursor:default; flex-direction:column; align-items:flex-start; gap:8px;">
+        <span class="sub-row-label">Home layout <span style="font-weight:300;color:var(--text-dim);text-transform:none;letter-spacing:0">— chosen at signup, change it anytime</span></span>
+        <div class="channel-chips" id="layout-preset-chips">
+          <button class="channel-chip" data-preset="league" onclick="setLayoutPreset('league')">Team/League</button>
+          <button class="channel-chip" data-preset="casual" onclick="setLayoutPreset('casual')">Casual</button>
+          <button class="channel-chip" data-preset="parent" onclick="setLayoutPreset('parent')">Parent</button>
         </div>
       </div>
     </div>
@@ -507,10 +599,37 @@
 
           <div class="self-service-row" id="self-service-row" style="display:none">
             <label class="self-service-toggle-label">
-              <input type="checkbox" id="self-service-toggle">
+              <input type="checkbox" id="self-service-toggle" onchange="toggleSelfServiceSetup()">
               <span>Give <span id="self-service-name">them</span> their own login</span>
             </label>
-            <p class="self-service-note">View-only access to their own schedule and team info. They can't register for anything, sign a waiver, or touch payment — that stays with you. Available from age 13.</p>
+            <p class="self-service-note">View-only access to their own schedule and team info, plus RSVP/check-in for drop-in sessions. They can't register for a new team, touch payment methods, or sign a new waiver — that stays with you. Available from age 13.</p>
+
+            <div id="self-service-setup" style="display:none">
+              <div class="ss-divider"></div>
+
+              <p class="ss-label">Their login</p>
+              <div class="ss-invite-box">
+                <div class="ss-invite-code" id="ss-invite-code">HAWKS-9F2K</div>
+                <button class="ss-invite-regen" onclick="regenerateInviteCode()">New code</button>
+              </div>
+              <p class="ss-hint">They'll use this code on their own device to set their own password — you won't know it, same as any account of their own. If they forget it later, the reset request comes to you, not them.</p>
+              <button class="ss-reset-btn" onclick="resetSelfServicePassword()">Reset their password</button>
+
+              <p class="ss-label" style="margin-top:16px">Drop-in balance</p>
+              <div class="ss-balance-row">
+                <span class="ss-balance-amount" id="ss-balance-amount">$25.00</span>
+                <button class="ss-add-funds-btn" onclick="addBalanceFunds()">+ Add funds</button>
+              </div>
+              <p class="ss-hint">They spend this independently on drop-in check-ins — no new charge happens without your action here first.</p>
+
+              <p class="ss-label" style="margin-top:16px">Pre-authorized rinks</p>
+              <p class="ss-hint" style="margin-top:0">A waiver signature from you, covering these rinks in advance, so they're never asked to sign anything themselves.</p>
+              <label class="ss-rink-check"><input type="checkbox" id="ss-rink-apex" checked> Apex Ice Arena</label>
+              <label class="ss-rink-check"><input type="checkbox" id="ss-rink-southsuburban"> South Suburban Sports Complex</label>
+              <label class="ss-rink-check"><input type="checkbox" id="ss-rink-blanket" onchange="toggleBlanketAuth()"> Any Rinkside partner rink</label>
+
+              <a href="rinkside-teen-view.html" style="display:block; text-align:center; margin-top:14px; margin-left:24px; padding:10px; border-radius:8px; border:1px solid var(--border-mid); color:var(--accent); text-decoration:none; font-size:11.5px; font-weight:600;">Preview their view →</a>
+            </div>
           </div>
           <p class="self-service-locked" id="self-service-locked" style="display:none">Self-service login becomes available once this profile turns 13.</p>
 
@@ -705,7 +824,53 @@
     const eligible = age !== null && age >= 13;
     document.getElementById('self-service-row').style.display = eligible ? 'block' : 'none';
     document.getElementById('self-service-locked').style.display = eligible ? 'none' : 'block';
-    if (!eligible) document.getElementById('self-service-toggle').checked = false;
+    if (!eligible) {
+      document.getElementById('self-service-toggle').checked = false;
+      document.getElementById('self-service-setup').style.display = 'none';
+    }
+  }
+
+  function toggleSelfServiceSetup() {
+    const on = document.getElementById('self-service-toggle').checked;
+    document.getElementById('self-service-setup').style.display = on ? 'block' : 'none';
+    if (on) showToast('✓ Self-service login enabled — set up their access below');
+  }
+
+  function generateInviteCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    code += '-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  function regenerateInviteCode() {
+    document.getElementById('ss-invite-code').textContent = generateInviteCode();
+    showToast('✓ New invite code generated — the old one no longer works');
+  }
+
+  function resetSelfServicePassword() {
+    showToast("✓ Password reset — they'll need a new invite code to log back in");
+    regenerateInviteCode();
+  }
+
+  function addBalanceFunds() {
+    const el = document.getElementById('ss-balance-amount');
+    const current = parseFloat(el.textContent.replace('$', ''));
+    const added = 25.00; // demo increment — real version would open a payment flow
+    el.textContent = `$${(current + added).toFixed(2)}`;
+    showToast(`✓ $${added.toFixed(2)} added to their drop-in balance`);
+  }
+
+  function toggleBlanketAuth() {
+    const blanket = document.getElementById('ss-rink-blanket').checked;
+    document.getElementById('ss-rink-apex').disabled = blanket;
+    document.getElementById('ss-rink-southsuburban').disabled = blanket;
+    if (blanket) {
+      document.getElementById('ss-rink-apex').checked = true;
+      document.getElementById('ss-rink-southsuburban').checked = true;
+    }
   }
 
   function saveDependentEdit() {
@@ -779,12 +944,169 @@
   document.getElementById('signout-btn').addEventListener('click', () => window.location.href = 'rinkside-welcome.html');
 
   function setChannel(channel) {
-    document.querySelectorAll('.channel-chip').forEach(c => c.classList.remove('active'));
-    document.getElementById('channel-' + channel).classList.add('active');
+    const chip = document.getElementById('channel-' + channel);
+    const isActive = chip.classList.contains('active');
+    const activeCount = document.querySelectorAll('.channel-chip.active').length;
+    if (isActive && activeCount === 1) {
+      showToast('At least one notification channel needs to stay on');
+      return;
+    }
+    chip.classList.toggle('active');
   }
+
+  // ── Home layout preference — lets the choice made once at signup (rinkside-signup.html Step 3)
+  // be changed anytime, writing to the exact same localStorage key Home actually reads
+  // ('rinkside-home-layout'), not a separate preference that would silently do nothing. ──
+  const PRESET_LABELS = { league: 'Team/League', casual: 'Casual', parent: 'Parent' };
+  function setLayoutPreset(preset) {
+    localStorage.setItem('rinkside-home-layout', preset);
+    document.querySelectorAll('#layout-preset-chips .channel-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.preset === preset);
+    });
+    showToast(`✓ Home layout set to ${PRESET_LABELS[preset]} — see it next time you open Home`);
+  }
+  (function initLayoutPreset() {
+    const saved = localStorage.getItem('rinkside-home-layout') || 'casual';
+    const chip = document.querySelector(`#layout-preset-chips .channel-chip[data-preset="${saved}"]`);
+    if (chip) chip.classList.add('active');
+  })();
+
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => showToast(`Navigating to ${item.getAttribute('aria-label')}…`));
   });
+
+  // ── Chat widget (Aug 2026) — visual mockup: real open/close/navigate/send interaction,
+  // no cross-page persistence. Each page load resets to the same seeded conversations. ──
+  const CHAT_THREADS = {
+    wolves: {
+      title: 'Apex Wolves',
+      messages: [
+        { from: 'D. Brooks', text: "See everyone Saturday at South Suburban", mine: false },
+        { from: 'M. Kim', text: "What time are we meeting for warmup?", mine: false },
+        { from: 'You', text: "7:15, same as always", mine: true },
+        { from: 'D. Brooks', text: "Perfect, see you all there", mine: false },
+      ]
+    },
+    lha: {
+      title: 'Littleton Hockey Assn.',
+      messages: [
+        { from: 'LHA Admin', text: "Reminder: Spring registration opens Jan 15", mine: false },
+        { from: 'LHA Admin', text: "USA Hockey membership needs to be current before you register", mine: false },
+      ]
+    },
+    stickpuck: {
+      title: 'Stick & Puck — Thursdays',
+      messages: [
+        { from: 'M. Kim', text: "anyone else in tonight?", mine: false },
+        { from: 'T. Shaw', text: "yeah I'll be there around 8:45", mine: false },
+        { from: 'You', text: "same, see you guys there", mine: true },
+      ]
+    },
+  };
+  let activeChatThread = null;
+
+  function toggleChatPanel() {
+    const panel = document.getElementById('chat-panel');
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open', opening);
+    if (opening) {
+      document.getElementById('chat-view-list').classList.add('active');
+      document.getElementById('chat-view-thread').classList.remove('active');
+    }
+  }
+
+  function openChatThread(key) {
+    activeChatThread = key;
+    const thread = CHAT_THREADS[key];
+    document.getElementById('chat-thread-title').textContent = thread.title;
+    const wrap = document.getElementById('chat-messages');
+    wrap.innerHTML = thread.messages.map(m => `
+      <div class="chat-msg ${m.mine ? 'mine' : 'theirs'}">
+        ${!m.mine ? `<div class="chat-msg-sender">${m.from}</div>` : ''}
+        ${m.text}
+      </div>
+    `).join('');
+    document.getElementById('chat-view-list').classList.remove('active');
+    document.getElementById('chat-view-thread').classList.add('active');
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function backToChatList() {
+    document.getElementById('chat-view-thread').classList.remove('active');
+    document.getElementById('chat-view-list').classList.add('active');
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text || !activeChatThread) return;
+    const wrap = document.getElementById('chat-messages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg mine';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    wrap.scrollTop = wrap.scrollHeight;
+    input.value = '';
+  }
+
+
 </script>
+
+<!-- ── Chat widget (Aug 2026) — global floating utility, visual mockup, no real persistence ── -->
+<button class="chat-bubble" id="chat-bubble" onclick="toggleChatPanel()" aria-label="Open chat">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span class="chat-bubble-badge" id="chat-bubble-badge">2</span>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <!-- List view -->
+  <div class="chat-view active" id="chat-view-list">
+    <div class="chat-panel-header">
+      <p class="chat-panel-title">Chats</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-list">
+      <div class="chat-list-item" onclick="openChatThread('wolves')">
+        <div class="chat-avatar team">🐺</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Apex Wolves <span class="chat-type-tag">Team</span></div>
+          <div class="chat-list-preview">D. Brooks: See everyone Saturday at South Suburban</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">2:14 PM</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('lha')">
+        <div class="chat-avatar assoc">🏛️</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Littleton Hockey Association <span class="chat-type-tag assoc">Association</span></div>
+          <div class="chat-list-preview">Reminder: Spring registration opens Jan 15</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Yesterday</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('stickpuck')">
+        <div class="chat-avatar session">🏒</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Stick &amp; Puck — Thursdays <span class="chat-type-tag session">Session</span></div>
+          <div class="chat-list-preview">M. Kim: anyone else in tonight?</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Tue</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread view -->
+  <div class="chat-view" id="chat-view-thread">
+    <div class="chat-panel-header">
+      <button class="chat-back-btn" onclick="backToChatList()" aria-label="Back to chats">‹</button>
+      <p class="chat-panel-title" id="chat-thread-title">Apex Wolves</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter') sendChatMessage()">
+      <button class="chat-send-btn" onclick="sendChatMessage()" aria-label="Send">➤</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rinkside — Session Detail</title>
+<title>Rinkside — Maya's View</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
-    --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.18);
+    --accent: #38bdf8; --accent-purple: #a78bfa;
     --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
     --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
     --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
@@ -20,115 +20,47 @@
   body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
   .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
 
-  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
-  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
-  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .topbar h1 { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+  .topbar { padding: 20px 20px 4px; }
+  .restricted-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; color: var(--accent-purple); background: rgba(167,139,250,0.12); padding: 5px 12px; border-radius: 999px; margin-bottom: 10px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
+  .topbar-sub { font-size: 12px; color: var(--text-muted); font-weight: 300; margin-top: 2px; }
 
   .content { padding: 20px; }
-  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; margin-top: 20px; }
+  .section-label:first-child { margin-top: 0; }
 
-  .session-card { background: linear-gradient(135deg, #16283a, #182f42); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 18px; margin-bottom: 22px; }
-  .session-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-  .session-sub { font-size: 12.5px; color: var(--text-muted); font-weight: 300; margin-bottom: 16px; }
+  .balance-card { background: linear-gradient(135deg, #16283a, #182f42); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 18px; }
+  .balance-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .balance-amount { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--green); }
+  .balance-note { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-top: 6px; line-height: 1.5; }
 
-  .capacity-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .cap-card { border-radius: var(--radius-sm); padding: 12px 14px; }
-  .cap-card.full { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); }
-  .cap-card.open { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); }
-  .cap-label { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
-  .cap-card.full .cap-label { color: var(--red); }
-  .cap-card.open .cap-label { color: var(--green); }
-  .cap-value { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .schedule-row { display: flex; align-items: center; gap: 12px; background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; }
+  .schedule-date { text-align: center; width: 40px; flex-shrink: 0; }
+  .schedule-date-name { font-size: 9.5px; color: var(--text-dim); text-transform: uppercase; }
+  .schedule-date-num { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+  .schedule-info { flex: 1; min-width: 0; }
+  .schedule-title { font-size: 12.5px; font-weight: 600; }
+  .schedule-meta { font-size: 10.5px; color: var(--text-muted); font-weight: 300; margin-top: 1px; }
+  .schedule-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px; flex-shrink: 0; }
+  .schedule-badge.confirmed { background: rgba(74,222,128,0.14); color: var(--green); }
 
-  .avatar-row { display: flex; align-items: center; gap: -6px; margin: 16px 0 6px; }
-  .avatar-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--rink-mid); border: 2px solid var(--rink-dark); margin-left: -8px; }
-  .avatar-dot:first-child { margin-left: 0; }
-  .avatar-overflow { font-size: 11px; color: var(--text-muted); margin-left: 8px; }
+  .view-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .view-link { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-decoration: none; color: var(--text-primary); text-align: center; }
+  .view-link-icon { font-size: 20px; margin-bottom: 6px; }
+  .view-link-label { font-size: 11.5px; font-weight: 600; }
 
-  .waitlist-box { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; font-size: 12px; color: var(--text-muted); font-weight: 300; line-height: 1.55; }
-
-  .position-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--border-mid); border-radius: var(--radius-sm); margin-bottom: 20px; background: var(--rink-panel); }
-  .position-label { font-size: 12px; color: var(--text-muted); }
-  .position-value { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
-
-  .info-box { background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 24px; display: flex; gap: 10px; font-size: 11.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; }
-
-  .cta-btn { width: 100%; padding: 16px; border-radius: var(--radius-sm); border: none; font-family: var(--font-body); font-weight: 700; font-size: 15px; cursor: pointer; }
-  .cta-btn.waitlist { background: var(--text-primary); color: var(--rink-dark); }
-  .cta-btn.goalie { background: var(--green); color: var(--rink-dark); }
-  .cta-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .dropin-card { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; }
+  .dropin-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .dropin-title { font-size: 13px; font-weight: 600; }
+  .dropin-price { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent); }
+  .dropin-rink { font-size: 11px; color: var(--text-muted); font-weight: 300; margin-bottom: 10px; }
+  .dropin-btn { width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: var(--font-body); border: none; }
+  .dropin-btn.enabled { background: var(--accent); color: var(--rink-dark); }
+  .dropin-btn.blocked { background: var(--rink-mid); color: var(--text-dim); }
+  .dropin-blocked-note { font-size: 10.5px; color: var(--amber); font-weight: 300; margin-top: 8px; line-height: 1.5; }
 
   .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--rink-panel); border: 1px solid var(--border-mid); border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; max-width: 90%; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ============ RESPONSIVE: TABLET/DESKTOP SIDEBAR ============ */
-  :root { --sidebar-w: 220px; }
-  .app-sidebar {
-    display: none;
-    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
-    background: var(--rink-mid, #132233); border-right: 1px solid var(--border-mid, rgba(56,189,248,0.22));
-    flex-direction: column; padding: 24px 0; z-index: 100;
-  }
-  .sidebar-logo {
-    font-family: var(--font-display, 'Syne', sans-serif); font-weight: 800; font-size: 19px;
-    padding: 0 24px 28px; letter-spacing: -0.3px;
-  }
-  .sidebar-logo span { color: var(--accent, #38bdf8); }
-  .sidebar-nav-item {
-    display: flex; align-items: center; gap: 12px; padding: 12px 24px;
-    text-decoration: none; font-family: var(--font-body, 'DM Sans', sans-serif);
-    font-size: 13.5px; font-weight: 500; border-left: 3px solid transparent;
-  }
-  .sidebar-nav-item svg { width: 19px; height: 19px; flex-shrink: 0; }
-  .sidebar-nav-item.active { border-left-color: var(--accent, #38bdf8); background: rgba(56,189,248,0.06); }
-  .sidebar-nav-item.active svg { stroke: var(--accent, #38bdf8); }
-  .sidebar-nav-item.active span { color: var(--accent, #38bdf8); font-weight: 600; }
-  .sidebar-nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
-  .sidebar-nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
-  .sidebar-nav-item:hover:not(.active) { background: rgba(255,255,255,0.03); }
-  .sidebar-nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: -2px; }
-
-  @media (min-width: 768px) {
-    .app-sidebar { display: flex; }
-    .page { margin-left: var(--sidebar-w); max-width: 680px; }
-    .bottom-nav { display: none !important; }
-    .toast { left: calc(50% + var(--sidebar-w) / 2); }
-  }
-  @media (min-width: 1200px) {
-    .page { max-width: 760px; margin-left: calc(var(--sidebar-w) + (100% - var(--sidebar-w) - 760px) / 2); }
-  }
-  /* ============ END RESPONSIVE SIDEBAR ============ */
-
-
-
-  /* ── BOTTOM NAV (added for mobile consistency with task screens) ── */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 100%; max-width: 420px;
-    background: #0f1f30;
-    border-top: 1px solid var(--border, rgba(56,189,248,0.12));
-    padding: 10px 0 20px;
-    display: flex; z-index: 100;
-  }
-  .nav-item {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; gap: 4px;
-    cursor: pointer; padding: 4px 0;
-    transition: opacity 0.15s; text-decoration: none;
-  }
-  .nav-item:hover { opacity: 0.8; }
-  .nav-item svg { width: 20px; height: 20px; }
-  .nav-item span { font-size: 9px; font-weight: 400; }
-  .nav-item.active svg { stroke: var(--accent, #38bdf8); }
-  .nav-item.active span { color: var(--accent, #38bdf8); font-weight: 500; }
-  .nav-item:not(.active) svg { stroke: var(--text-dim, #7aa3b8); }
-  .nav-item:not(.active) span { color: var(--text-dim, #7aa3b8); }
-  .nav-item:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; border-radius: 6px; }
-  @media (min-width: 768px) { .bottom-nav { display: none !important; } }
-
-
 
   /* ── Chat widget (Aug 2026) ── */
   .chat-bubble {
@@ -203,83 +135,63 @@
 </style>
 </head>
 <body>
-  <nav class="app-sidebar" aria-label="Main navigation">
-    <div class="sidebar-logo">Rink<span>side</span></div>
-    <a class="sidebar-nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
-    <a class="sidebar-nav-item" href="rinkside-schedule.html" aria-label="Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
-    <a class="sidebar-nav-item" href="rinkside-teams.html" aria-label="Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
-    <a class="sidebar-nav-item active" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
-    <a class="sidebar-nav-item" href="rinkside-saved.html" aria-label="Saved"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved</span></a>
-  </nav>
-
 <div class="page">
 
   <div class="topbar">
-    <a class="back-btn" href="rinkside-explore.html?view=activities" aria-label="Back to Explore" onclick="if(window.__rinksideOverlayMode && window.closeOverlay){window.closeOverlay();return false;} if(window.history.length>1){history.back();return false;}">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </a>
-    <h1>Session Detail</h1>
+    <span class="restricted-badge">🔒 Self-service view</span>
+    <h1>Hey, Maya</h1>
+    <p class="topbar-sub">Schedule, teams, and check-in — your parent handles registration and payment</p>
   </div>
 
   <div class="content">
 
-    <div class="session-card">
-      <div class="session-title">Pickup Hockey</div>
-      <div class="session-sub">The Ice Ranch · Sat, Aug 16 · 6:00–7:00 AM</div>
+    <div class="balance-card">
+      <div class="balance-label">Drop-in balance</div>
+      <div class="balance-amount" id="teen-balance">$50.00</div>
+      <div class="balance-note">Spend this on drop-in check-ins whenever — your parent adds more when it runs low.</div>
+    </div>
 
-      <p class="section-label" style="margin-bottom:8px">Capacity — skaters and goalies are separate pools</p>
-      <div class="capacity-split">
-        <div class="cap-card full">
-          <div class="cap-label">Skaters</div>
-          <div class="cap-value">Full · 8 waiting</div>
-        </div>
-        <div class="cap-card open">
-          <div class="cap-label">Goalies</div>
-          <div class="cap-value">2 of 4 open</div>
-        </div>
+    <p class="section-label">Your upcoming schedule</p>
+    <div class="schedule-row">
+      <div class="schedule-date"><div class="schedule-date-name">Sat</div><div class="schedule-date-num">14</div></div>
+      <div class="schedule-info"><div class="schedule-title">Learn to Skate — Level 2</div><div class="schedule-meta">Apex Ice Arena · 9:00 AM</div></div>
+      <span class="schedule-badge confirmed">✓</span>
+    </div>
+    <div class="schedule-row">
+      <div class="schedule-date"><div class="schedule-date-name">Tue</div><div class="schedule-date-num">17</div></div>
+      <div class="schedule-info"><div class="schedule-title">Figure Skating Practice</div><div class="schedule-meta">Apex Ice Arena · 4:00 PM</div></div>
+      <span class="schedule-badge confirmed">✓</span>
+    </div>
+
+    <p class="section-label">Your team</p>
+    <div class="view-links">
+      <a class="view-link" href="rinkside-team-profile.html?team=hawks"><div class="view-link-icon">🦅</div><div class="view-link-label">Littleton Hawks</div></a>
+      <a class="view-link" href="rinkside-stats.html"><div class="view-link-icon">📈</div><div class="view-link-label">My Stats</div></a>
+    </div>
+
+    <p class="section-label">Drop in whenever — book against your balance</p>
+
+    <div class="dropin-card">
+      <div class="dropin-row-top">
+        <span class="dropin-title">Public Skate — Evening</span>
+        <span class="dropin-price">$12.00</span>
       </div>
+      <p class="dropin-rink">Apex Ice Arena · Today, 7:00 PM</p>
+      <button class="dropin-btn enabled" onclick="checkInDropIn('Public Skate — Evening', 12.00, true)">RSVP &amp; check in — uses balance</button>
     </div>
 
-    <p class="section-label">Skater waitlist</p>
-    <div class="avatar-row">
-      <div class="avatar-dot"></div><div class="avatar-dot"></div><div class="avatar-dot"></div>
-      <div class="avatar-dot"></div><div class="avatar-dot"></div><div class="avatar-dot"></div>
-      <span class="avatar-overflow">+2</span>
+    <div class="dropin-card">
+      <div class="dropin-row-top">
+        <span class="dropin-title">Stick &amp; Puck</span>
+        <span class="dropin-price">$14.00</span>
+      </div>
+      <p class="dropin-rink">The Ice Ranch · Tomorrow, 6:00 AM</p>
+      <button class="dropin-btn blocked" onclick="checkInDropIn('Stick &amp; Puck', 14.00, false)">Not pre-authorized</button>
+      <p class="dropin-blocked-note">Ask your parent to pre-authorize The Ice Ranch before you can book here on your own.</p>
     </div>
-
-    <div class="waitlist-box">
-      This session is full for skaters. Join the waitlist and we'll automatically charge your
-      saved payment method and confirm your spot the moment one opens — you're not charged until
-      then. <strong>Goalies register free regardless of skater capacity</strong> — see the open
-      spots above.
-    </div>
-
-    <p class="section-label">Your position if you join the skater waitlist now</p>
-    <div class="position-row">
-      <span class="position-label">Position</span>
-      <span class="position-value">#9 in line</span>
-    </div>
-
-    <div class="info-box">
-      <span style="flex-shrink:0">ⓘ</span>
-      <p>If someone ahead of you cancels, their refund becomes final only if no one else fills it before start time — see the cancellation policy at checkout.</p>
-    </div>
-
-    <button class="cta-btn waitlist" onclick="showToast('✓ Added to skater waitlist — you\'re #9')" style="margin-bottom:12px">Join Skater Waitlist — #9 in line</button>
-    <a href="rinkside-checkout.html?role=goalie" style="text-decoration:none">
-      <button class="cta-btn goalie" style="width:100%">Register as Goalie — Free</button>
-    </a>
 
   </div>
 </div>
-
-<nav class="bottom-nav" aria-label="Main navigation">
-  <a class="nav-item" href="rinkside-home.html" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
-  <a class="nav-item" href="rinkside-schedule.html" aria-label="My Schedule"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></a>
-  <a class="nav-item" href="rinkside-teams.html" aria-label="My Teams"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Teams</span></a>
-  <a class="nav-item active" href="rinkside-explore.html" aria-label="Explore"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg><span>Explore</span></a>
-  <a class="nav-item" href="rinkside-saved.html" aria-label="Saved Rinks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Saved Rinks</span></a>
-</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -290,7 +202,22 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function checkInDropIn(name, price, authorized) {
+    if (!authorized) {
+      showToast('This rink isn\'t pre-authorized yet — ask your parent to add it first');
+      return;
+    }
+    const balEl = document.getElementById('teen-balance');
+    const current = parseFloat(balEl.textContent.replace('$', ''));
+    if (current < price) {
+      showToast('Not enough balance — ask your parent to add more');
+      return;
+    }
+    balEl.textContent = `$${(current - price).toFixed(2)}`;
+    showToast(`✓ Checked in to ${name} — $${price.toFixed(2)} used from your balance`);
   }
 
   // ── Chat widget (Aug 2026) — visual mockup: real open/close/navigate/send interaction,

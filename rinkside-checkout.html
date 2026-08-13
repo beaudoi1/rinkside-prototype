@@ -93,6 +93,22 @@
   .modal-btn.cancel { background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); }
   .modal-btn.confirm { background: var(--accent); border: none; color: var(--rink-dark); }
   .modal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .waiver-modal-card { max-width: 380px; max-height: 85vh; display: flex; flex-direction: column; }
+  .waiver-modal-subtitle { font-size: 11px; color: var(--text-dim); font-weight: 300; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .waiver-modal-tag { font-size: 9px; font-weight: 700; color: var(--amber); background: rgba(251,191,36,0.12); padding: 2px 8px; border-radius: 999px; }
+  .waiver-doc-scroll { flex: 1; overflow-y: auto; background: var(--rink-mid); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 14px; max-height: 220px; }
+  .waiver-doc-h { font-size: 11.5px; font-weight: 700; color: var(--accent); margin-top: 12px; margin-bottom: 4px; }
+  .waiver-doc-h:first-child { margin-top: 0; }
+  .waiver-doc-p { font-size: 11px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+  .waiver-sign-label { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .waiver-sign-input { width: 100%; padding: 11px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-mid); background: var(--rink-panel); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; margin-bottom: 12px; }
+  .waiver-sign-input::placeholder { color: var(--text-dim); }
+  .waiver-confirm-row { display: flex; align-items: flex-start; gap: 8px; font-size: 10.5px; color: var(--text-muted); font-weight: 300; line-height: 1.5; margin-bottom: 14px; cursor: pointer; }
+  .waiver-confirm-row input { margin-top: 2px; flex-shrink: 0; width: 15px; height: 15px; accent-color: var(--accent); }
+  .waiver-review-btn { width: 100%; padding: 10px; border-radius: 8px; background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
+  .waiver-signed-row { display: flex; align-items: center; gap: 8px; color: var(--green); font-size: 11.5px; font-weight: 500; }
+
   .goalie-banner { display: none; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 12px; color: var(--green); }
   .goalie-banner.show { display: block; }
 
@@ -176,6 +192,18 @@
     margin-top: 10vh;
   }
   .sheet-handle { width: 40px; height: 4px; background: var(--border-mid); border-radius: 999px; margin: 12px auto 0; }
+
+  .confirmation-view { display: none; flex-direction: column; align-items: center; text-align: center; padding: 60px 32px 40px; }
+  .confirmation-view.show { display: flex; }
+  .confirmation-check { width: 64px; height: 64px; border-radius: 50%; background: var(--green, #4ade80); color: var(--rink-dark); font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: confirmPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  @keyframes confirmPop { from { transform: scale(0); } to { transform: scale(1); } }
+  .confirmation-title { font-family: var(--font-display); font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .confirmation-subtitle { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .confirmation-detail { font-size: 12.5px; color: var(--text-muted); font-weight: 300; margin-bottom: 28px; }
+  .confirmation-btn { width: 100%; max-width: 260px; padding: 13px; border-radius: var(--radius-sm); font-weight: 700; font-size: 13.5px; cursor: pointer; font-family: var(--font-body); margin-bottom: 10px; }
+  .confirmation-btn.primary { background: var(--accent); border: none; color: var(--rink-dark); }
+  .confirmation-btn.secondary { background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); }
+  .confirmation-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @keyframes sheetSlideUp {
     from { transform: translateY(24px); opacity: 0; }
     to   { transform: translateY(0); opacity: 1; }
@@ -185,20 +213,91 @@
   }
   /* ============ END FLOATING SHEET TREATMENT ============ */
 
+
+  /* ── Chat widget (Aug 2026) ── */
+  .chat-bubble {
+    position: fixed; bottom: 90px; right: 16px; z-index: 250;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(56,189,248,0.4); cursor: pointer;
+  }
+  .chat-bubble:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .chat-bubble-badge {
+    position: absolute; top: -3px; right: -3px; background: var(--red, #f87171); color: #fff;
+    font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--rink-dark, #0b1824);
+  }
+  @media (min-width: 768px) { .chat-bubble { right: 24px; bottom: 24px; } }
+
+  .chat-panel {
+    display: none; position: fixed; bottom: 152px; right: 16px; z-index: 251;
+    width: min(340px, calc(100vw - 32px)); height: min(460px, calc(100vh - 200px));
+    background: var(--rink-mid, #132233); border: 1px solid var(--border-mid, rgba(56,189,248,0.22));
+    border-radius: 18px; box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+    flex-direction: column; overflow: hidden;
+  }
+  .chat-panel.open { display: flex; animation: chatPanelUp 0.2s ease both; }
+  @keyframes chatPanelUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @media (min-width: 768px) { .chat-panel { bottom: 88px; right: 24px; } }
+
+  .chat-view { display: none; flex-direction: column; height: 100%; }
+  .chat-view.active { display: flex; }
+
+  .chat-panel-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0;
+  }
+  .chat-panel-title { flex: 1; font-family: var(--font-display, 'Syne', sans-serif); font-size: 14px; font-weight: 700; color: var(--text-primary, #f0f8ff); }
+  .chat-close-btn, .chat-back-btn {
+    background: none; border: none; color: var(--text-dim, #7aa3b8); font-size: 16px; cursor: pointer;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .chat-back-btn { font-size: 22px; }
+  .chat-close-btn:focus-visible, .chat-back-btn:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
+
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .chat-list-item { display: flex; gap: 10px; padding: 10px 8px; border-radius: 10px; cursor: pointer; align-items: center; }
+  .chat-list-item:hover { background: rgba(255,255,255,0.03); }
+  .chat-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chat-avatar.team { background: rgba(167,139,250,0.15); }
+  .chat-avatar.assoc { background: rgba(251,191,36,0.15); }
+  .chat-avatar.session { background: rgba(56,189,248,0.15); }
+  .chat-list-body { flex: 1; min-width: 0; }
+  .chat-list-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary, #f0f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-type-tag { font-size: 8.5px; font-weight: 700; color: var(--text-dim, #7aa3b8); text-transform: uppercase; letter-spacing: 0.04em; margin-left: 4px; }
+  .chat-list-preview { font-size: 11px; color: var(--text-muted, #7fa9c0); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .chat-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .chat-list-time { font-size: 9.5px; color: var(--text-dim, #7aa3b8); }
+  .chat-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent, #38bdf8); }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg { max-width: 78%; padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.4; }
+  .chat-msg.theirs { align-self: flex-start; background: var(--rink-panel, #182f42); color: var(--text-primary, #f0f8ff); border-bottom-left-radius: 4px; }
+  .chat-msg.mine { align-self: flex-end; background: var(--accent, #38bdf8); color: var(--rink-dark, #0b1824); border-bottom-right-radius: 4px; }
+  .chat-msg-sender { font-size: 9.5px; font-weight: 700; color: var(--accent, #38bdf8); margin-bottom: 2px; }
+
+  .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0; }
+  .chat-input { flex: 1; background: var(--rink-panel, #182f42); border: 1px solid var(--border-mid, rgba(56,189,248,0.22)); border-radius: 999px; padding: 9px 14px; color: var(--text-primary, #f0f8ff); font-family: var(--font-body, 'DM Sans', sans-serif); font-size: 12.5px; }
+  .chat-input::placeholder { color: var(--text-dim, #7aa3b8); }
+  .chat-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824); cursor: pointer; flex-shrink: 0; }
+  .chat-send-btn:focus-visible, .chat-input:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
+
+
 </style>
 </head>
 <body>
 <div class="page">
   <div class="sheet-handle"></div>
 
-  <div class="topbar">
+  <div class="topbar" id="checkout-topbar">
     <a class="back-btn" href="rinkside-explore.html?view=activities" aria-label="Back to Explore" onclick="if(window.__rinksideOverlayMode && window.closeOverlay){window.closeOverlay();return false;} if(window.history.length>1){history.back();return false;}">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </a>
     <h1>Checkout</h1>
   </div>
 
-  <div class="content">
+  <div class="content" id="checkout-main-content">
 
     <div class="session-card">
       <div class="session-title">Stick &amp; Puck</div>
@@ -337,6 +436,18 @@
     <button class="pay-btn" id="pay-btn" onclick="handleBookingSuccess()">Pay $12.99 &amp; Book</button>
 
   </div>
+
+  <!-- ── Confirmation view (Aug 2026) — real in-place swap within the same floating sheet,
+       not a toast that auto-dismisses. Continue takes you to Schedule to see the booking;
+       Close returns you to wherever you were, handling both overlay and standalone contexts. ── -->
+  <div class="confirmation-view" id="confirmation-view">
+    <div class="confirmation-check">✓</div>
+    <p class="confirmation-title">Thanks for signing up!</p>
+    <p class="confirmation-subtitle" id="confirmation-session-name">Stick &amp; Puck</p>
+    <p class="confirmation-detail">You're all set — see you there.</p>
+    <button class="confirmation-btn primary" onclick="handleConfirmationContinue()">View my schedule</button>
+    <button class="confirmation-btn secondary" onclick="handleConfirmationClose()">Close</button>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="custom-donation-backdrop" onclick="closeCustomDonation(event)">
@@ -349,6 +460,44 @@
     <div class="modal-actions">
       <button class="modal-btn cancel" onclick="closeCustomDonation()">Cancel</button>
       <button class="modal-btn confirm" onclick="confirmCustomDonation()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Waiver signing modal (Aug 2026) — generic template, Colorado-scoped for the prototype's
+     testing phase. State-specific enforceability varies (some states don't enforce a parent's
+     signature on a minor's behalf at all), so this is explicitly NOT final production legal
+     language — see PROJECT-TRACKER for the engineering-phase plan to route by rink location and
+     support rink-uploaded custom waivers. ── -->
+<div class="modal-backdrop" id="waiver-modal-backdrop">
+  <div class="modal-card waiver-modal-card">
+    <p class="modal-title" id="waiver-modal-title">Liability Waiver — Apex Ice Arena</p>
+    <p class="waiver-modal-subtitle">Colorado — generic template <span class="waiver-modal-tag">Prototype placeholder</span></p>
+
+    <div class="waiver-doc-scroll">
+      <p class="waiver-doc-h">Assumption of Risk</p>
+      <p class="waiver-doc-p">Ice skating, hockey, and related activities carry inherent risks of injury, including but not limited to collisions, falls, and contact with other participants, equipment, or the playing surface. I understand and voluntarily accept these risks on behalf of the participant named on this waiver.</p>
+
+      <p class="waiver-doc-h">Release of Liability</p>
+      <p class="waiver-doc-p">To the fullest extent permitted under Colorado law, I release Apex Ice Arena, its owners, staff, and affiliated organizations from liability for injury arising from ordinary negligence in connection with the participant's use of the facility, excluding gross negligence or willful misconduct.</p>
+
+      <p class="waiver-doc-h">Medical Treatment Authorization</p>
+      <p class="waiver-doc-p">I authorize facility staff to obtain emergency medical treatment for the participant if I cannot be reached, and agree to be financially responsible for any resulting costs not covered by insurance.</p>
+
+      <p class="waiver-doc-h">Consent to Electronic Signature</p>
+      <p class="waiver-doc-p">I agree to conduct this transaction electronically and understand this signature carries the same legal effect as a handwritten one. I may request a paper copy of this agreement at any time by contacting Rinkside support.</p>
+    </div>
+
+    <p class="waiver-sign-label">Type the participant's legal guardian full name to sign</p>
+    <input type="text" class="waiver-sign-input" id="waiver-sign-input" placeholder="Full legal name">
+    <label class="waiver-confirm-row">
+      <input type="checkbox" id="waiver-confirm-check">
+      <span>I have read this agreement and I am the participant's parent or legal guardian, or the participant is an adult signing on their own behalf</span>
+    </label>
+
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeWaiverModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="confirmWaiverSignature()">Sign &amp; agree</button>
     </div>
   </div>
 </div>
@@ -366,9 +515,26 @@
   }
 
   function handleBookingSuccess() {
-    showToast('✓ Booking confirmed — see you Friday!');
+    const sessionName = document.querySelector('.session-title')?.textContent || 'your session';
+    document.getElementById('confirmation-session-name').textContent = sessionName;
+    document.getElementById('checkout-topbar').style.display = 'none';
+    document.getElementById('checkout-main-content').style.display = 'none';
+    document.getElementById('confirmation-view').classList.add('show');
+  }
+
+  function handleConfirmationContinue() {
+    // "Continue" means see the booking, regardless of overlay vs. standalone context — navigating
+    // to Schedule is the right behavior either way, replacing whatever host page was underneath.
+    window.location.href = 'rinkside-schedule.html';
+  }
+
+  function handleConfirmationClose() {
     if (window.__rinksideOverlayMode && window.closeOverlay) {
-      setTimeout(() => window.closeOverlay(), 1400); // let the confirmation actually be seen first
+      window.closeOverlay();
+    } else if (window.history.length > 1) {
+      history.back();
+    } else {
+      window.location.href = 'rinkside-explore.html';
     }
   }
 
@@ -488,6 +654,66 @@
     state.donation = val;
     document.getElementById('custom-donation-backdrop').classList.remove('show');
     recalcTotal();
+  }
+
+  // ── Waiver signing modal ──
+  let activeWaiverIndex = null;
+
+  function openWaiverModal(index) {
+    activeWaiverIndex = index;
+    const p = participants[index];
+    document.getElementById('waiver-modal-title').textContent = `Liability Waiver — Apex Ice Arena`;
+    document.getElementById('waiver-sign-input').value = '';
+    document.getElementById('waiver-confirm-check').checked = false;
+    document.getElementById('waiver-modal-backdrop').classList.add('show');
+  }
+
+  function closeWaiverModal() {
+    document.getElementById('waiver-modal-backdrop').classList.remove('show');
+    activeWaiverIndex = null;
+  }
+
+  function confirmWaiverSignature() {
+    const nameInput = document.getElementById('waiver-sign-input');
+    const confirmed = document.getElementById('waiver-confirm-check').checked;
+    const typedName = nameInput.value.trim();
+
+    if (!typedName) { nameInput.focus(); showToast('Type the signer\'s full legal name'); return; }
+    if (!confirmed) { showToast('Confirm you\'ve read the agreement and have authority to sign'); return; }
+    if (activeWaiverIndex === null) return;
+
+    const p = participants[activeWaiverIndex];
+    const signedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    p.waiverChecked = true;
+    p.waiverSignedName = typedName;
+    p.waiverSignedDate = signedDate;
+    saveWaiverRecord(p.name, signedDate); // real cross-session memory, same rink
+
+    document.getElementById('waiver-modal-backdrop').classList.remove('show');
+    activeWaiverIndex = null;
+    renderWaiverList();
+    showToast(`✓ Waiver signed for ${p.name}`);
+  }
+
+  // ── Waiver persistence, per rink (Aug 2026) — a dependent who signed last time shouldn't be
+  // asked again this time. Real localStorage-based memory, same pattern already proven for the
+  // Game Detail ↔ Team Management substitute connection, not just a session-local variable that
+  // resets on every Checkout load. ──
+  const RINK_ID = 'apex'; // this Checkout is hardcoded to Apex Ice Arena
+  function getSignedWaivers() {
+    try {
+      const raw = localStorage.getItem('rinkside-waivers-' + RINK_ID);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveWaiverRecord(name, signedDate) {
+    const records = getSignedWaivers();
+    records[name] = signedDate;
+    localStorage.setItem('rinkside-waivers-' + RINK_ID, JSON.stringify(records));
+  }
+  function checkWaiverOnFile(name) {
+    const records = getSignedWaivers();
+    return records[name] || null;
   }
 
   const state = { couponCode: null, couponDiscount: 0, donation: 0 };
@@ -613,10 +839,12 @@
     } else {
       row.classList.add('selected');
       row.setAttribute('aria-checked', 'true');
-      // "You" always has a waiver on file already; anyone else being re-added defaults to
-      // needing a fresh signature — matches the real default state for a dependent.
-      const waiverStatus = name === 'You' ? 'onfile' : 'needed';
-      participants.push({ name, tier, role: 'skater', waiverStatus, waiverChecked: waiverStatus === 'onfile' });
+      // "You" always has a waiver on file already; anyone else checks the real per-rink
+      // localStorage record first — a dependent who already signed for this rink shouldn't be
+      // asked again just because this is a new Checkout session.
+      const onFileDate = checkWaiverOnFile(name);
+      const waiverStatus = (name === 'You' || onFileDate) ? 'onfile' : 'needed';
+      participants.push({ name, tier, role: 'skater', waiverStatus, waiverChecked: waiverStatus === 'onfile', waiverSignedDate: onFileDate });
     }
     updateParticipantSummary();
   }
@@ -660,10 +888,12 @@
     row.addEventListener('click', (e) => { if (!e.target.closest('.mini-role-toggle')) toggleParticipant(row, name, tier); });
     row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleParticipant(row, name, tier); } });
     document.getElementById('dependent-rows').appendChild(row);
-    // Dependents default to needing a fresh waiver for THIS rink — being "saved to your account"
-    // means Rinkside remembers their profile, not that they've been waived at every rink they
-    // might play at. Applies the same whether this is an existing or brand-new dependent.
-    participants.push({ name, tier, role: 'skater', waiverStatus: 'needed', waiverChecked: false });
+    // Check the real per-rink localStorage record before defaulting to "needs a fresh waiver" —
+    // being "saved to your account" only means Rinkside remembers their profile, it doesn't mean
+    // they've signed at this specific rink, unless the record actually shows they have.
+    const onFileDate = checkWaiverOnFile(name);
+    const waiverStatus = onFileDate ? 'onfile' : 'needed';
+    participants.push({ name, tier, role: 'skater', waiverStatus, waiverChecked: waiverStatus === 'onfile', waiverSignedDate: onFileDate });
     updateParticipantSummary();
   }
 
@@ -714,20 +944,16 @@
       if (p.waiverStatus === 'onfile') {
         return `<div class="waiver-onfile-row"><span>✓</span><span>${p.name} — waiver on file for Apex Ice Arena, no signature needed</span></div>`;
       }
+      const signed = p.waiverChecked;
       return `
         <div class="waiver-needed-box">
           <div class="waiver-participant-name">${p.name} <span style="color:var(--text-dim);font-weight:300">— first time at this rink</span></div>
-          <label class="waiver-checkbox-row">
-            <input type="checkbox" ${p.waiverChecked ? 'checked' : ''} onchange="setWaiverChecked(${i}, this.checked)">
-            <span>I have read and agree to Apex Ice Arena's liability waiver on ${p.name}'s behalf</span>
-          </label>
+          ${signed
+            ? `<div class="waiver-signed-row"><span>✓</span><span>Signed by ${p.waiverSignedName || p.name} on ${p.waiverSignedDate || 'today'}</span></div>`
+            : `<button class="waiver-review-btn" onclick="openWaiverModal(${i})">Review &amp; sign waiver</button>`
+          }
         </div>`;
     }).join('');
-    updatePayButtonState();
-  }
-
-  function setWaiverChecked(index, checked) {
-    if (participants[index]) participants[index].waiverChecked = checked;
     updatePayButtonState();
   }
 
@@ -739,6 +965,139 @@
   }
   applySessionTypeVisibility();
   renderWaiverList(); // initial render so "You" shows up immediately, not just after an interaction
+
+  // ── Chat widget (Aug 2026) — visual mockup: real open/close/navigate/send interaction,
+  // no cross-page persistence. Each page load resets to the same seeded conversations. ──
+  const CHAT_THREADS = {
+    wolves: {
+      title: 'Apex Wolves',
+      messages: [
+        { from: 'D. Brooks', text: "See everyone Saturday at South Suburban", mine: false },
+        { from: 'M. Kim', text: "What time are we meeting for warmup?", mine: false },
+        { from: 'You', text: "7:15, same as always", mine: true },
+        { from: 'D. Brooks', text: "Perfect, see you all there", mine: false },
+      ]
+    },
+    lha: {
+      title: 'Littleton Hockey Assn.',
+      messages: [
+        { from: 'LHA Admin', text: "Reminder: Spring registration opens Jan 15", mine: false },
+        { from: 'LHA Admin', text: "USA Hockey membership needs to be current before you register", mine: false },
+      ]
+    },
+    stickpuck: {
+      title: 'Stick & Puck — Thursdays',
+      messages: [
+        { from: 'M. Kim', text: "anyone else in tonight?", mine: false },
+        { from: 'T. Shaw', text: "yeah I'll be there around 8:45", mine: false },
+        { from: 'You', text: "same, see you guys there", mine: true },
+      ]
+    },
+  };
+  let activeChatThread = null;
+
+  function toggleChatPanel() {
+    const panel = document.getElementById('chat-panel');
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open', opening);
+    if (opening) {
+      document.getElementById('chat-view-list').classList.add('active');
+      document.getElementById('chat-view-thread').classList.remove('active');
+    }
+  }
+
+  function openChatThread(key) {
+    activeChatThread = key;
+    const thread = CHAT_THREADS[key];
+    document.getElementById('chat-thread-title').textContent = thread.title;
+    const wrap = document.getElementById('chat-messages');
+    wrap.innerHTML = thread.messages.map(m => `
+      <div class="chat-msg ${m.mine ? 'mine' : 'theirs'}">
+        ${!m.mine ? `<div class="chat-msg-sender">${m.from}</div>` : ''}
+        ${m.text}
+      </div>
+    `).join('');
+    document.getElementById('chat-view-list').classList.remove('active');
+    document.getElementById('chat-view-thread').classList.add('active');
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function backToChatList() {
+    document.getElementById('chat-view-thread').classList.remove('active');
+    document.getElementById('chat-view-list').classList.add('active');
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text || !activeChatThread) return;
+    const wrap = document.getElementById('chat-messages');
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-msg mine';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    wrap.scrollTop = wrap.scrollHeight;
+    input.value = '';
+  }
+
+
 </script>
+
+<!-- ── Chat widget (Aug 2026) — global floating utility, visual mockup, no real persistence ── -->
+<button class="chat-bubble" id="chat-bubble" onclick="toggleChatPanel()" aria-label="Open chat">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span class="chat-bubble-badge" id="chat-bubble-badge">2</span>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <!-- List view -->
+  <div class="chat-view active" id="chat-view-list">
+    <div class="chat-panel-header">
+      <p class="chat-panel-title">Chats</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-list">
+      <div class="chat-list-item" onclick="openChatThread('wolves')">
+        <div class="chat-avatar team">🐺</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Apex Wolves <span class="chat-type-tag">Team</span></div>
+          <div class="chat-list-preview">D. Brooks: See everyone Saturday at South Suburban</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">2:14 PM</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('lha')">
+        <div class="chat-avatar assoc">🏛️</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Littleton Hockey Association <span class="chat-type-tag assoc">Association</span></div>
+          <div class="chat-list-preview">Reminder: Spring registration opens Jan 15</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Yesterday</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('stickpuck')">
+        <div class="chat-avatar session">🏒</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Stick &amp; Puck — Thursdays <span class="chat-type-tag session">Session</span></div>
+          <div class="chat-list-preview">M. Kim: anyone else in tonight?</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Tue</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread view -->
+  <div class="chat-view" id="chat-view-thread">
+    <div class="chat-panel-header">
+      <button class="chat-back-btn" onclick="backToChatList()" aria-label="Back to chats">‹</button>
+      <p class="chat-panel-title" id="chat-thread-title">Apex Wolves</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter') sendChatMessage()">
+      <button class="chat-send-btn" onclick="sendChatMessage()" aria-label="Send">➤</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

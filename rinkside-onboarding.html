@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-panel: #182f42;
+    --accent: #38bdf8; --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+  .page { max-width: 420px; margin: 0 auto; width: 100%; min-height: 100vh; display: flex; flex-direction: column; padding: 0 0 32px; }
+
+  .skip-row { display: flex; justify-content: flex-end; padding: 20px 20px 0; }
+  .skip-btn { background: none; border: none; color: var(--text-dim); font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); padding: 8px; }
+  .skip-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .card-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 32px; text-align: center; }
+  .card { display: none; }
+  .card.active { display: block; animation: fadeIn 0.3s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card-icon { font-size: 52px; margin-bottom: 24px; }
+  .card-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+  .card-text { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.6; max-width: 300px; margin: 0 auto; }
+
+  .dots { display: flex; justify-content: center; gap: 8px; padding: 24px 0; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-mid); transition: all 0.2s; }
+  .dot.active { background: var(--accent); width: 20px; border-radius: 999px; }
+
+  .nav-row { padding: 0 24px; display: flex; gap: 10px; }
+  .nav-btn { flex: 1; padding: 15px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); border: none; }
+  .nav-btn.primary { background: var(--accent); color: var(--rink-dark); }
+  .nav-btn.secondary { background: none; border: 1.5px solid var(--border-mid); color: var(--text-primary); }
+  .nav-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="skip-row">
+    <button class="skip-btn" onclick="finishOnboarding()">Skip</button>
+  </div>
+
+  <div class="card-wrap">
+    <div class="card active" data-card="1">
+      <div class="card-icon">🏒</div>
+      <p class="card-title">Welcome to Rinkside</p>
+      <p class="card-text">One place to find sessions, book ice time, and manage everything your team or family needs — no more juggling five different apps.</p>
+    </div>
+
+    <div class="card" data-card="2">
+      <div class="card-icon">📅</div>
+      <p class="card-title">Your Schedule, Always Current</p>
+      <p class="card-text">Games, practices, and drop-ins all show up in one place automatically — no manual entry, no missed sessions.</p>
+    </div>
+
+    <!-- Card 3: preset-specific -->
+    <div class="card" data-card="3" id="card3-league">
+      <div class="card-icon">🥅</div>
+      <p class="card-title">Your Teams, In One Spot</p>
+      <p class="card-text">Roster, standings, stats, and team chat — see who's in for the next game and manage your lineup without a group text.</p>
+    </div>
+    <div class="card" data-card="3" id="card3-casual">
+      <div class="card-icon">🔍</div>
+      <p class="card-title">Find & Book in Seconds</p>
+      <p class="card-text">Drop-in hockey, public skate, whatever you're in the mood for — browse what's nearby and book without leaving the app.</p>
+    </div>
+    <div class="card" data-card="3" id="card3-parent">
+      <div class="card-icon">👨‍👧</div>
+      <p class="card-title">Everything for Your Kids</p>
+      <p class="card-text">Manage registrations, waivers, and schedules for every dependent from one account — no separate logins to track.</p>
+    </div>
+
+    <!-- Card 4: preset-specific -->
+    <div class="card" data-card="4" id="card4-league">
+      <div class="card-icon">✓</div>
+      <p class="card-title">Skip the Front Desk</p>
+      <p class="card-text">Self-check-in when you arrive at the rink — no more waiting in line to confirm you showed up.</p>
+    </div>
+    <div class="card" data-card="4" id="card4-casual">
+      <div class="card-icon">❤️</div>
+      <p class="card-title">Save Your Favorite Rinks</p>
+      <p class="card-text">Bookmark the spots you skate at most for one-tap access to hours, amenities, and open sessions.</p>
+    </div>
+    <div class="card" data-card="4" id="card4-parent">
+      <div class="card-icon">🔒</div>
+      <p class="card-title">Growing Independence</p>
+      <p class="card-text">When your kid's old enough, give them their own limited login — they can check their schedule and check in themselves, without touching payment.</p>
+    </div>
+
+    <div class="card" data-card="5">
+      <div class="card-icon">💬</div>
+      <p class="card-title">Stay Connected</p>
+      <p class="card-text">Chat with your team, your session group, or your association right from the app — tap the bubble in the corner anytime.</p>
+    </div>
+
+    <div class="card" data-card="6">
+      <div class="card-icon">🎉</div>
+      <p class="card-title">You're All Set</p>
+      <p class="card-text">That's Rinkside in a nutshell. Everything else you'll pick up as you go.</p>
+    </div>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="nav-row">
+    <button class="nav-btn secondary" id="back-btn" onclick="prevCard()" style="visibility:hidden">Back</button>
+    <button class="nav-btn primary" id="next-btn" onclick="nextCard()">Next</button>
+  </div>
+</div>
+
+<script>
+  const preset = localStorage.getItem('rinkside-home-layout') || 'casual';
+  // Real bug caught before shipping: setting el.style.display = 'block' here would permanently
+  // override the CSS class-based show/hide (inline styles beat class rules), meaning the
+  // preset-matched card would stay visible forever regardless of which card is actually active.
+  // Not needed at all — showCard() below only ever adds .active to the correct preset variant,
+  // so the other two variants simply never get toggled and stay hidden via the base .card rule.
+
+  const totalCards = 6;
+  let current = 1;
+
+  const dotsWrap = document.getElementById('dots');
+  for (let i = 1; i <= totalCards; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 1 ? ' active' : '');
+    d.id = 'dot-' + i;
+    dotsWrap.appendChild(d);
+  }
+
+  function getCardEl(n) {
+    if (n === 3 || n === 4) return document.getElementById(`card${n}-${preset}`);
+    return document.querySelector(`.card[data-card="${n}"]:not([id])`);
+  }
+
+  function showCard(n) {
+    for (let i = 1; i <= totalCards; i++) {
+      const el = getCardEl(i);
+      if (el) el.classList.toggle('active', i === n);
+    }
+    for (let i = 1; i <= totalCards; i++) {
+      document.getElementById('dot-' + i).classList.toggle('active', i === n);
+    }
+    document.getElementById('back-btn').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('next-btn').textContent = n === totalCards ? 'Get Started' : 'Next';
+  }
+
+  function nextCard() {
+    if (current === totalCards) { finishOnboarding(); return; }
+    current++;
+    showCard(current);
+  }
+
+  function prevCard() {
+    if (current === 1) return;
+    current--;
+    showCard(current);
+  }
+
+  function finishOnboarding() {
+    window.location.href = 'rinkside-home.html';
+  }
+</script>
+</body>
+</html>
