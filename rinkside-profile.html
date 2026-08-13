@@ -175,6 +175,15 @@
   .sub-chevron { color: var(--text-dim); }
 
   .channel-chips { display: flex; gap: 8px; }
+
+  .rank-list { display: flex; flex-direction: column; gap: 8px; }
+  .rank-item { display: flex; align-items: center; gap: 12px; background: var(--rink-mid, #132233); border: 1.5px solid var(--border-mid); border-radius: 12px; padding: 12px 14px; }
+  .rank-num { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--accent); width: 20px; text-align: center; flex-shrink: 0; }
+  .rank-label { flex: 1; font-size: 13px; font-weight: 500; }
+  .rank-arrows { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .rank-arrow { width: 26px; height: 20px; border-radius: 5px; border: 1px solid var(--border-mid); background: var(--rink-panel, #182f42); color: var(--text-muted); font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .rank-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+  .rank-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .channel-chip { padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--border-mid); background: none; color: var(--text-muted); font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
   .channel-chip.active { background: var(--accent); border-color: var(--accent); color: var(--rink-dark); }
   .channel-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -448,11 +457,40 @@
         </div>
       </div>
       <div class="sub-row" style="cursor:default; flex-direction:column; align-items:flex-start; gap:8px;">
-        <span class="sub-row-label">Home layout <span style="font-weight:300;color:var(--text-dim);text-transform:none;letter-spacing:0">— chosen at signup, change it anytime</span></span>
-        <div class="channel-chips" id="layout-preset-chips">
-          <button class="channel-chip" data-preset="league" onclick="setLayoutPreset('league')">Team/League</button>
-          <button class="channel-chip" data-preset="casual" onclick="setLayoutPreset('casual')">Casual</button>
-          <button class="channel-chip" data-preset="parent" onclick="setLayoutPreset('parent')">Parent</button>
+        <span class="sub-row-label">Home layout <span style="font-weight:300;color:var(--text-dim);text-transform:none;letter-spacing:0">— ranked at signup, reorder anytime</span></span>
+        <div class="rank-list" id="profile-rank-list" style="width:100%">
+          <div class="rank-item" data-block="schedule">
+            <span class="rank-num">1</span>
+            <span class="rank-label">My Schedule</span>
+            <div class="rank-arrows">
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, -1)" aria-label="Move up">▲</button>
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, 1)" aria-label="Move down">▼</button>
+            </div>
+          </div>
+          <div class="rank-item" data-block="teams">
+            <span class="rank-num">2</span>
+            <span class="rank-label">My Teams</span>
+            <div class="rank-arrows">
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, -1)" aria-label="Move up">▲</button>
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, 1)" aria-label="Move down">▼</button>
+            </div>
+          </div>
+          <div class="rank-item" data-block="activities">
+            <span class="rank-num">3</span>
+            <span class="rank-label">Activities Near Me</span>
+            <div class="rank-arrows">
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, -1)" aria-label="Move up">▲</button>
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, 1)" aria-label="Move down">▼</button>
+            </div>
+          </div>
+          <div class="rank-item" data-block="rinks-quick">
+            <span class="rank-num">4</span>
+            <span class="rank-label">Rinks Near Me</span>
+            <div class="rank-arrows">
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, -1)" aria-label="Move up">▲</button>
+              <button type="button" class="rank-arrow" onclick="moveProfileRank(this, 1)" aria-label="Move down">▼</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -568,7 +606,7 @@
     </div>
     <div class="accordion-panel" id="panel-kids">
       <div class="kids-panel-inner">
-        <div class="kid-card" tabindex="0" data-name="Alex Jr." data-age="8" data-usah="">
+        <div class="kid-card" tabindex="0" data-name="Alex Jr." data-age="8" data-dob="2018-03-14" data-usah="">
           <div class="kid-card-left">
             <div class="kid-avatar">AJ</div>
             <div>
@@ -578,7 +616,7 @@
           </div>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <div class="kid-card" tabindex="0" data-name="Maya Rivera" data-age="11" data-usah="">
+        <div class="kid-card" tabindex="0" data-name="Maya Rivera" data-age="11" data-dob="2014-11-02" data-usah="">
           <div class="kid-card-left">
             <div class="kid-avatar">MR</div>
             <div>
@@ -604,6 +642,14 @@
             </label>
             <p class="self-service-note">View-only access to their own schedule and team info, plus RSVP/check-in for drop-in sessions. They can't register for a new team, touch payment methods, or sign a new waiver — that stays with you. Available from age 13.</p>
 
+            <div class="ss-divider"></div>
+            <p class="ss-label">Drop-in balance</p>
+            <div class="ss-balance-row">
+              <span class="ss-balance-amount" id="ss-balance-amount">$25.00</span>
+              <button class="ss-add-funds-btn" onclick="addBalanceFunds()">+ Add funds</button>
+            </div>
+            <p class="ss-hint">Available from age 13, independent of whether they have their own login yet — they can only spend it once self-service access is on below.</p>
+
             <div id="self-service-setup" style="display:none">
               <div class="ss-divider"></div>
 
@@ -614,13 +660,6 @@
               </div>
               <p class="ss-hint">They'll use this code on their own device to set their own password — you won't know it, same as any account of their own. If they forget it later, the reset request comes to you, not them.</p>
               <button class="ss-reset-btn" onclick="resetSelfServicePassword()">Reset their password</button>
-
-              <p class="ss-label" style="margin-top:16px">Drop-in balance</p>
-              <div class="ss-balance-row">
-                <span class="ss-balance-amount" id="ss-balance-amount">$25.00</span>
-                <button class="ss-add-funds-btn" onclick="addBalanceFunds()">+ Add funds</button>
-              </div>
-              <p class="ss-hint">They spend this independently on drop-in check-ins — no new charge happens without your action here first.</p>
 
               <p class="ss-label" style="margin-top:16px">Pre-authorized rinks</p>
               <p class="ss-hint" style="margin-top:0">A waiver signature from you, covering these rinks in advance, so they're never asked to sign anything themselves.</p>
@@ -797,6 +836,11 @@
       activeDepCard = card;
       document.getElementById('dep-manage-name').value = card.dataset.name;
       document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
+      // Real bug fix, Aug 2026: this field was always left blank when editing an existing kid,
+      // even though a known age was already stored — no visible date to explain why self-service
+      // was locked, and nothing to actually edit going forward. Falls back to an empty field only
+      // for a genuinely new/never-set DOB, not for every existing profile.
+      document.getElementById('dep-manage-dob').value = card.dataset.dob || '';
       document.getElementById('self-service-name').textContent = card.dataset.name.split(' ')[0];
       checkSelfServiceEligibility(parseInt(card.dataset.age) || null);
       const panel = document.getElementById('dep-manage-panel');
@@ -880,6 +924,23 @@
     activeDepCard.dataset.name = newName;
     activeDepCard.dataset.usah = document.getElementById('dep-manage-usah').value.trim();
     activeDepCard.querySelector('.kid-name').textContent = newName;
+
+    // Real bug fix, Aug 2026: this never read the DOB field at all, so editing a birthdate never
+    // updated the age shown under the kid's name — it would silently keep showing the old value
+    // (or "New profile" forever, for a newly-created kid) regardless of what was actually saved.
+    const dobValue = document.getElementById('dep-manage-dob').value;
+    if (dobValue) {
+      const dob = new Date(dobValue);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+      activeDepCard.dataset.age = age;
+      activeDepCard.dataset.dob = dobValue;
+      const ageEl = activeDepCard.querySelector('.kid-age');
+      if (ageEl) ageEl.textContent = `Age ${age}`;
+    }
+
     document.getElementById('dep-manage-panel').classList.remove('show');
     const selfServiceOn = document.getElementById('self-service-toggle').checked;
     showToast(selfServiceOn
@@ -918,6 +979,11 @@
       activeDepCard = card;
       document.getElementById('dep-manage-name').value = card.dataset.name;
       document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
+      document.getElementById('dep-manage-dob').value = card.dataset.dob || '';
+      document.getElementById('self-service-name').textContent = card.dataset.name.split(' ')[0];
+      checkSelfServiceEligibility(null); // real bug fix: this was missing entirely, meaning a
+      // newly-created kid would show whatever locked/unlocked state was last left on screen
+      // rather than a correct one for a brand-new profile with no DOB set yet.
       const panel = document.getElementById('dep-manage-panel');
       card.after(panel);
       panel.classList.add('show');
@@ -954,21 +1020,53 @@
     chip.classList.toggle('active');
   }
 
-  // ── Home layout preference — lets the choice made once at signup (rinkside-signup.html Step 3)
-  // be changed anytime, writing to the exact same localStorage key Home actually reads
-  // ('rinkside-home-layout'), not a separate preference that would silently do nothing. ──
-  const PRESET_LABELS = { league: 'Team/League', casual: 'Casual', parent: 'Parent' };
-  function setLayoutPreset(preset) {
-    localStorage.setItem('rinkside-home-layout', preset);
-    document.querySelectorAll('#layout-preset-chips .channel-chip').forEach(chip => {
-      chip.classList.toggle('active', chip.dataset.preset === preset);
-    });
-    showToast(`✓ Home layout set to ${PRESET_LABELS[preset]} — see it next time you open Home`);
+  // ── Home layout ranking (Aug 2026) — replaced the 3-preset system with real ranking, same as
+  // Signup Step 3. Writes to the exact same localStorage key Home actually reads
+  // ('rinkside-home-layout'), now storing a JSON array of the real order, not a persona string. ──
+  function moveProfileRank(btn, direction) {
+    const item = btn.closest('.rank-item');
+    const list = item.parentElement;
+    const items = [...list.children];
+    const index = items.indexOf(item);
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= items.length) return;
+    if (direction === -1) {
+      list.insertBefore(item, items[newIndex]);
+    } else {
+      list.insertBefore(items[newIndex], item);
+    }
+    updateProfileRankNumbers();
+    saveProfileRankOrder();
   }
-  (function initLayoutPreset() {
-    const saved = localStorage.getItem('rinkside-home-layout') || 'casual';
-    const chip = document.querySelector(`#layout-preset-chips .channel-chip[data-preset="${saved}"]`);
-    if (chip) chip.classList.add('active');
+
+  function updateProfileRankNumbers() {
+    const items = document.querySelectorAll('#profile-rank-list .rank-item');
+    items.forEach((item, i) => {
+      item.querySelector('.rank-num').textContent = i + 1;
+      item.querySelectorAll('.rank-arrow')[0].disabled = (i === 0);
+      item.querySelectorAll('.rank-arrow')[1].disabled = (i === items.length - 1);
+    });
+  }
+
+  function saveProfileRankOrder() {
+    const order = [...document.querySelectorAll('#profile-rank-list .rank-item')].map(item => item.dataset.block);
+    localStorage.setItem('rinkside-home-layout', JSON.stringify(order));
+    showToast('✓ Home layout updated — see it next time you open Home');
+  }
+
+  (function initProfileRankOrder() {
+    let saved;
+    try {
+      saved = JSON.parse(localStorage.getItem('rinkside-home-layout'));
+    } catch (e) { saved = null; }
+    if (Array.isArray(saved) && saved.length === 4) {
+      const list = document.getElementById('profile-rank-list');
+      saved.forEach(blockName => {
+        const item = list.querySelector(`[data-block="${blockName}"]`);
+        if (item) list.appendChild(item);
+      });
+    }
+    updateProfileRankNumbers(); // always run, whether reordered from saved state or left default
   })();
 
   document.querySelectorAll('.nav-item').forEach(item => {

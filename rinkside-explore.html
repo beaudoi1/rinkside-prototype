@@ -164,8 +164,79 @@
   @media (min-width: 1200px) { .page { max-width: 1080px; } }
 
 
+  /* ── Chat widget (Aug 2026) ── */
+  .chat-bubble {
+    position: fixed; bottom: 90px; right: 16px; z-index: 250;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(56,189,248,0.4); cursor: pointer;
+  }
+  .chat-bubble:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .chat-bubble-badge {
+    position: absolute; top: -3px; right: -3px; background: var(--red, #f87171); color: #fff;
+    font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--rink-dark, #0b1824);
+  }
+  @media (min-width: 768px) { .chat-bubble { right: 24px; bottom: 24px; } }
+
+  .chat-panel {
+    display: none; position: fixed; bottom: 152px; right: 16px; z-index: 251;
+    width: min(340px, calc(100vw - 32px)); height: min(460px, calc(100vh - 200px));
+    background: var(--rink-mid, #132233); border: 1px solid var(--border-mid, rgba(56,189,248,0.22));
+    border-radius: 18px; box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+    flex-direction: column; overflow: hidden;
+  }
+  .chat-panel.open { display: flex; animation: chatPanelUp 0.2s ease both; }
+  @keyframes chatPanelUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @media (min-width: 768px) { .chat-panel { bottom: 88px; right: 24px; } }
+
+  .chat-view { display: none; flex-direction: column; height: 100%; }
+  .chat-view.active { display: flex; }
+
+  .chat-panel-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0;
+  }
+  .chat-panel-title { flex: 1; font-family: var(--font-display, 'Syne', sans-serif); font-size: 14px; font-weight: 700; color: var(--text-primary, #f0f8ff); }
+  .chat-close-btn, .chat-back-btn {
+    background: none; border: none; color: var(--text-dim, #7aa3b8); font-size: 16px; cursor: pointer;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .chat-back-btn { font-size: 22px; }
+  .chat-close-btn:focus-visible, .chat-back-btn:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
+
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .chat-list-item { display: flex; gap: 10px; padding: 10px 8px; border-radius: 10px; cursor: pointer; align-items: center; }
+  .chat-list-item:hover { background: rgba(255,255,255,0.03); }
+  .chat-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chat-avatar.team { background: rgba(167,139,250,0.15); }
+  .chat-avatar.assoc { background: rgba(251,191,36,0.15); }
+  .chat-avatar.session { background: rgba(56,189,248,0.15); }
+  .chat-list-body { flex: 1; min-width: 0; }
+  .chat-list-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary, #f0f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-type-tag { font-size: 8.5px; font-weight: 700; color: var(--text-dim, #7aa3b8); text-transform: uppercase; letter-spacing: 0.04em; margin-left: 4px; }
+  .chat-list-preview { font-size: 11px; color: var(--text-muted, #7fa9c0); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .chat-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .chat-list-time { font-size: 9.5px; color: var(--text-dim, #7aa3b8); }
+  .chat-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent, #38bdf8); }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-msg { max-width: 78%; padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.4; }
+  .chat-msg.theirs { align-self: flex-start; background: var(--rink-panel, #182f42); color: var(--text-primary, #f0f8ff); border-bottom-left-radius: 4px; }
+  .chat-msg.mine { align-self: flex-end; background: var(--accent, #38bdf8); color: var(--rink-dark, #0b1824); border-bottom-right-radius: 4px; }
+  .chat-msg-sender { font-size: 9.5px; font-weight: 700; color: var(--accent, #38bdf8); margin-bottom: 2px; }
+
+  .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0; }
+  .chat-input { flex: 1; background: var(--rink-panel, #182f42); border: 1px solid var(--border-mid, rgba(56,189,248,0.22)); border-radius: 999px; padding: 9px 14px; color: var(--text-primary, #f0f8ff); font-family: var(--font-body, 'DM Sans', sans-serif); font-size: 12.5px; }
+  .chat-input::placeholder { color: var(--text-dim, #7aa3b8); }
+  .chat-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824); cursor: pointer; flex-shrink: 0; }
+  .chat-send-btn:focus-visible, .chat-input:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
+
+
 </style>
 </head>
+<body>
 <body>
   <nav class="app-sidebar" aria-label="Main navigation">
     <div class="sidebar-logo">Rink<span>side</span></div>
@@ -328,11 +399,70 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ── Chat widget (Aug 2026) — global floating utility, visual mockup, no real persistence ── -->
+<button class="chat-bubble" id="chat-bubble" onclick="toggleChatPanel()" aria-label="Open chat">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span class="chat-bubble-badge" id="chat-bubble-badge">2</span>
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <!-- List view -->
+  <div class="chat-view active" id="chat-view-list">
+    <div class="chat-panel-header">
+      <p class="chat-panel-title">Chats</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-list">
+      <div class="chat-list-item" onclick="openChatThread('wolves')">
+        <div class="chat-avatar team">🐺</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Apex Wolves <span class="chat-type-tag">Team</span></div>
+          <div class="chat-list-preview">D. Brooks: See everyone Saturday at South Suburban</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">2:14 PM</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('lha')">
+        <div class="chat-avatar assoc">🏛️</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Littleton Hockey Association <span class="chat-type-tag assoc">Association</span></div>
+          <div class="chat-list-preview">Reminder: Spring registration opens Jan 15</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Yesterday</span><span class="chat-unread-dot"></span></div>
+      </div>
+      <div class="chat-list-item" onclick="openChatThread('stickpuck')">
+        <div class="chat-avatar session">🏒</div>
+        <div class="chat-list-body">
+          <div class="chat-list-name">Stick &amp; Puck — Thursdays <span class="chat-type-tag session">Session</span></div>
+          <div class="chat-list-preview">M. Kim: anyone else in tonight?</div>
+        </div>
+        <div class="chat-list-meta"><span class="chat-list-time">Tue</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thread view -->
+  <div class="chat-view" id="chat-view-thread">
+    <div class="chat-panel-header">
+      <button class="chat-back-btn" onclick="backToChatList()" aria-label="Back to chats">‹</button>
+      <p class="chat-panel-title" id="chat-thread-title">Apex Wolves</p>
+      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter') sendChatMessage()">
+      <button class="chat-send-btn" onclick="sendChatMessage()" aria-label="Send">➤</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
   <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
 </div>
 
+
 <script>
+  // ── Toast utility ──
   var toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -342,14 +472,6 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  // ── Fetch-and-inject overlay (Aug 2026) ── Proof case: Explore → Checkout. Real fetched
-  // content, real Shadow DOM isolation (not a styled iframe substitute) — genuinely solves the
-  // CSS/ID collision risk that made this approach worth the upfront cost, since class names like
-  // .page, .content, .toast are reused across nearly every file in this prototype. Shadow DOM
-  // isolates style and the DOM tree; it does NOT isolate JS scope, since script tags inside a
-  // shadow root still execute against the global window — handled below by flagging overlay mode
-  // so the embedded page's own back-button logic can detect it's inside an overlay rather than a
-  // real page and close instead of navigating.
   var overlayShadowRoot = null;
 
   // These only ever get called from scripts injected by openOverlay() below (see the text
@@ -362,6 +484,14 @@
   async function openOverlay(url) {
     const backdrop = document.getElementById('overlay-backdrop');
     const host = document.getElementById('overlay-sheet-host');
+
+    // Real bug fix, Aug 2026: window.location.search always reflects the HOST page's own URL,
+    // never the fetched URL's query string — an embedded page's script checking
+    // window.location.search for its own params (like Checkout's ?session= variant) gets nothing,
+    // even when the URL passed here clearly has them. Stored separately so embedded scripts have
+    // a real way to read their own params instead of silently falling back to defaults.
+    const qIndex = url.indexOf('?');
+    window.__rinksideOverlayParams = qIndex !== -1 ? url.slice(qIndex) : '';
 
     if (!overlayShadowRoot) {
       overlayShadowRoot = host.attachShadow({ mode: 'open' });
@@ -382,78 +512,7 @@
       const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
       const bodyContent = parsed.body.innerHTML;
 
-      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}
-  /* ── Chat widget (Aug 2026) ── */
-  .chat-bubble {
-    position: fixed; bottom: 90px; right: 16px; z-index: 250;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 20px rgba(56,189,248,0.4); cursor: pointer;
-  }
-  .chat-bubble:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-  .chat-bubble-badge {
-    position: absolute; top: -3px; right: -3px; background: var(--red, #f87171); color: #fff;
-    font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; border: 2px solid var(--rink-dark, #0b1824);
-  }
-  @media (min-width: 768px) { .chat-bubble { right: 24px; bottom: 24px; } }
-
-  .chat-panel {
-    display: none; position: fixed; bottom: 152px; right: 16px; z-index: 251;
-    width: min(340px, calc(100vw - 32px)); height: min(460px, calc(100vh - 200px));
-    background: var(--rink-mid, #132233); border: 1px solid var(--border-mid, rgba(56,189,248,0.22));
-    border-radius: 18px; box-shadow: 0 12px 48px rgba(0,0,0,0.5);
-    flex-direction: column; overflow: hidden;
-  }
-  .chat-panel.open { display: flex; animation: chatPanelUp 0.2s ease both; }
-  @keyframes chatPanelUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @media (min-width: 768px) { .chat-panel { bottom: 88px; right: 24px; } }
-
-  .chat-view { display: none; flex-direction: column; height: 100%; }
-  .chat-view.active { display: flex; }
-
-  .chat-panel-header {
-    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
-    border-bottom: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0;
-  }
-  .chat-panel-title { flex: 1; font-family: var(--font-display, 'Syne', sans-serif); font-size: 14px; font-weight: 700; color: var(--text-primary, #f0f8ff); }
-  .chat-close-btn, .chat-back-btn {
-    background: none; border: none; color: var(--text-dim, #7aa3b8); font-size: 16px; cursor: pointer;
-    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .chat-back-btn { font-size: 22px; }
-  .chat-close-btn:focus-visible, .chat-back-btn:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
-
-  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
-  .chat-list-item { display: flex; gap: 10px; padding: 10px 8px; border-radius: 10px; cursor: pointer; align-items: center; }
-  .chat-list-item:hover { background: rgba(255,255,255,0.03); }
-  .chat-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-  .chat-avatar.team { background: rgba(167,139,250,0.15); }
-  .chat-avatar.assoc { background: rgba(251,191,36,0.15); }
-  .chat-avatar.session { background: rgba(56,189,248,0.15); }
-  .chat-list-body { flex: 1; min-width: 0; }
-  .chat-list-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary, #f0f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chat-type-tag { font-size: 8.5px; font-weight: 700; color: var(--text-dim, #7aa3b8); text-transform: uppercase; letter-spacing: 0.04em; margin-left: 4px; }
-  .chat-list-preview { font-size: 11px; color: var(--text-muted, #7fa9c0); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-  .chat-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-  .chat-list-time { font-size: 9.5px; color: var(--text-dim, #7aa3b8); }
-  .chat-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent, #38bdf8); }
-
-  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-  .chat-msg { max-width: 78%; padding: 8px 12px; border-radius: 14px; font-size: 12px; line-height: 1.4; }
-  .chat-msg.theirs { align-self: flex-start; background: var(--rink-panel, #182f42); color: var(--text-primary, #f0f8ff); border-bottom-left-radius: 4px; }
-  .chat-msg.mine { align-self: flex-end; background: var(--accent, #38bdf8); color: var(--rink-dark, #0b1824); border-bottom-right-radius: 4px; }
-  .chat-msg-sender { font-size: 9.5px; font-weight: 700; color: var(--accent, #38bdf8); margin-bottom: 2px; }
-
-  .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border, rgba(56,189,248,0.12)); flex-shrink: 0; }
-  .chat-input { flex: 1; background: var(--rink-panel, #182f42); border: 1px solid var(--border-mid, rgba(56,189,248,0.22)); border-radius: 999px; padding: 9px 14px; color: var(--text-primary, #f0f8ff); font-family: var(--font-body, 'DM Sans', sans-serif); font-size: 12.5px; }
-  .chat-input::placeholder { color: var(--text-dim, #7aa3b8); }
-  .chat-send-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--accent, #38bdf8); border: none; color: var(--rink-dark, #0b1824); cursor: pointer; flex-shrink: 0; }
-  .chat-send-btn:focus-visible, .chat-input:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
-
-
-</style>${bodyContent}`;
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
 
       // Re-execute embedded scripts — innerHTML does not run script elements, so each one is
       // rebuilt and appended manually, which does execute it. Critical fix: Shadow DOM isolates
@@ -626,65 +685,6 @@
     wrap.scrollTop = wrap.scrollHeight;
     input.value = '';
   }
-
-
 </script>
-
-<!-- ── Chat widget (Aug 2026) — global floating utility, visual mockup, no real persistence ── -->
-<button class="chat-bubble" id="chat-bubble" onclick="toggleChatPanel()" aria-label="Open chat">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-  <span class="chat-bubble-badge" id="chat-bubble-badge">2</span>
-</button>
-
-<div class="chat-panel" id="chat-panel">
-  <!-- List view -->
-  <div class="chat-view active" id="chat-view-list">
-    <div class="chat-panel-header">
-      <p class="chat-panel-title">Chats</p>
-      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
-    </div>
-    <div class="chat-list">
-      <div class="chat-list-item" onclick="openChatThread('wolves')">
-        <div class="chat-avatar team">🐺</div>
-        <div class="chat-list-body">
-          <div class="chat-list-name">Apex Wolves <span class="chat-type-tag">Team</span></div>
-          <div class="chat-list-preview">D. Brooks: See everyone Saturday at South Suburban</div>
-        </div>
-        <div class="chat-list-meta"><span class="chat-list-time">2:14 PM</span><span class="chat-unread-dot"></span></div>
-      </div>
-      <div class="chat-list-item" onclick="openChatThread('lha')">
-        <div class="chat-avatar assoc">🏛️</div>
-        <div class="chat-list-body">
-          <div class="chat-list-name">Littleton Hockey Association <span class="chat-type-tag assoc">Association</span></div>
-          <div class="chat-list-preview">Reminder: Spring registration opens Jan 15</div>
-        </div>
-        <div class="chat-list-meta"><span class="chat-list-time">Yesterday</span><span class="chat-unread-dot"></span></div>
-      </div>
-      <div class="chat-list-item" onclick="openChatThread('stickpuck')">
-        <div class="chat-avatar session">🏒</div>
-        <div class="chat-list-body">
-          <div class="chat-list-name">Stick &amp; Puck — Thursdays <span class="chat-type-tag session">Session</span></div>
-          <div class="chat-list-preview">M. Kim: anyone else in tonight?</div>
-        </div>
-        <div class="chat-list-meta"><span class="chat-list-time">Tue</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Thread view -->
-  <div class="chat-view" id="chat-view-thread">
-    <div class="chat-panel-header">
-      <button class="chat-back-btn" onclick="backToChatList()" aria-label="Back to chats">‹</button>
-      <p class="chat-panel-title" id="chat-thread-title">Apex Wolves</p>
-      <button class="chat-close-btn" onclick="toggleChatPanel()" aria-label="Close chat">✕</button>
-    </div>
-    <div class="chat-messages" id="chat-messages"></div>
-    <div class="chat-input-row">
-      <input type="text" class="chat-input" id="chat-input" placeholder="Message…" onkeydown="if(event.key==='Enter') sendChatMessage()">
-      <button class="chat-send-btn" onclick="sendChatMessage()" aria-label="Send">➤</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>

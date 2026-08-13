@@ -18,7 +18,17 @@
     --green:#4ade80; --amber:#fbbf24; --red:#f87171;
   }
   body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; }
-  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; }
+  .page { max-width: 420px; margin: 0 auto; padding: 0 0 40px; background: var(--rink-dark); min-height: 100vh; }
+  /* Conditional floating-sheet treatment (Aug 2026) — applied via JS only when this page is
+     embedded as an overlay; a direct standalone visit keeps the normal full-page look with real
+     nav. Matches the polish Checkout already has, without permanently changing this file's
+     standalone behavior the way Checkout's unconditional version does. */
+  .page.overlay-sheet-mode {
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    margin-top: 10vh;
+    min-height: auto;
+  }
 
   .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
   .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; color: var(--text-primary); text-decoration: none; flex-shrink: 0; }
@@ -368,6 +378,19 @@
   }
 
 
+
+  // Real fix, Aug 2026: when loaded as a floating overlay, this page's own bottom nav was
+  // rendering redundantly inside the sheet — Checkout already had its nav removed for exactly
+  // this reason (a modal doesn't need destination navigation), but this file never got the same
+  // treatment. Hides it specifically in overlay mode; standalone page loads are unaffected.
+  // Also applies the same rounded-sheet, solid-card look Checkout already has, conditionally —
+  // this file still needs its normal full-page look when visited directly, not just embedded.
+  if (window.__rinksideOverlayMode) {
+    const navEl = document.querySelector('.bottom-nav');
+    if (navEl) navEl.style.display = 'none';
+    const pageEl = document.querySelector('.page');
+    if (pageEl) pageEl.classList.add('overlay-sheet-mode');
+  }
 </script>
 
 <!-- ── Chat widget (Aug 2026) — global floating utility, visual mockup, no real persistence ── -->

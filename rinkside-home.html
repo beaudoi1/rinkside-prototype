@@ -1199,22 +1199,19 @@
     });
   });
 
-  // ── Home layout presets ──
-  // Reads a preset chosen during onboarding (rinkside-signup.html step 3) and reorders
-  // the customizable blocks accordingly. Default (no preset saved) = the order already
-  // built into the HTML, which is a neutral middle ground, not biased toward any persona.
-  var LAYOUT_PRESETS = {
-    league:  ['teams', 'activities', 'schedule', 'rinks-quick'],
-    casual:  ['activities', 'rinks-quick', 'schedule', 'teams'],
-    parent:  ['schedule', 'activities', 'teams', 'rinks-quick'],
-  };
-
+  // ── Home layout ranking (Aug 2026) — replaced the 3-preset system. The person ranks the 4
+  // blocks directly (Signup Step 3, or Profile → Account Info anytime after), and localStorage
+  // stores that real order as a JSON array — 'rinkside-home-layout' now holds
+  // '["teams","schedule","activities","rinks-quick"]', not a persona string like "league". No
+  // indirection through a preset lookup table anymore; the stored order *is* the order.
   function applyHomeLayout() {
-    const layout = localStorage.getItem('rinkside-home-layout');
-    if (!layout || !LAYOUT_PRESETS[layout]) return; // default HTML order stands
+    let order;
+    try {
+      order = JSON.parse(localStorage.getItem('rinkside-home-layout'));
+    } catch (e) { order = null; }
+    if (!Array.isArray(order) || order.length === 0) return; // default HTML order stands
 
     const container = document.getElementById('home-blocks');
-    const order = LAYOUT_PRESETS[layout];
     order.forEach(blockName => {
       const block = container.querySelector(`[data-block="${blockName}"]`);
       if (block) container.appendChild(block); // moves to end, in listed order
@@ -1234,6 +1231,14 @@
   async function openOverlay(url) {
     const backdrop = document.getElementById('overlay-backdrop');
     const host = document.getElementById('overlay-sheet-host');
+
+    // Real bug fix, Aug 2026: window.location.search always reflects the HOST page's own URL,
+    // never the fetched URL's query string — an embedded page's script checking
+    // window.location.search for its own params (like Checkout's ?session= variant) gets nothing,
+    // even when the URL passed here clearly has them. Stored separately so embedded scripts have
+    // a real way to read their own params instead of silently falling back to defaults.
+    const qIndex = url.indexOf('?');
+    window.__rinksideOverlayParams = qIndex !== -1 ? url.slice(qIndex) : '';
 
     if (!overlayShadowRoot) {
       overlayShadowRoot = host.attachShadow({ mode: 'open' });

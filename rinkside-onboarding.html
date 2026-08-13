@@ -116,7 +116,23 @@
 </div>
 
 <script>
-  const preset = localStorage.getItem('rinkside-home-layout') || 'casual';
+  // ── Persona derivation from ranking (Aug 2026) — replaced the direct preset string, since
+  // Signup Step 3 now produces a real ranking instead of picking one of 3 personas. Maps
+  // whichever block ended up ranked #1 onto the closest-matching card variant: Teams→league,
+  // Schedule→parent, Activities/Rinks→casual. This is a real inference, not a certainty — if
+  // someone ranks Schedule first for reasons that have nothing to do with parenting, they'll
+  // still see the parent-flavored cards. Worth revisiting if that mapping turns out wrong. ──
+  let preset = 'casual';
+  try {
+    const order = JSON.parse(localStorage.getItem('rinkside-home-layout'));
+    if (Array.isArray(order) && order.length > 0) {
+      const topBlock = order[0];
+      if (topBlock === 'teams') preset = 'league';
+      else if (topBlock === 'schedule') preset = 'parent';
+      else preset = 'casual'; // activities or rinks-quick
+    }
+  } catch (e) { /* keep default 'casual' */ }
+
   // Real bug caught before shipping: setting el.style.display = 'block' here would permanently
   // override the CSS class-based show/hide (inline styles beat class rules), meaning the
   // preset-matched card would stay visible forever regardless of which card is actually active.

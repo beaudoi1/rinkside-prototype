@@ -417,8 +417,8 @@
 
     <p class="section-label">Payment</p>
     <div class="payment-row">
-      <div class="payment-info">•••• •••• •••• 4242</div>
-      <button class="change-link">Change</button>
+      <div class="payment-info">✓ Connected via Stripe</div>
+      <button class="change-link" onclick="showToast('🔒 Opening Stripe…')">Manage</button>
     </div>
 
     <p class="section-label">Liability waivers — each person needs their own</p>
@@ -723,11 +723,25 @@
   // drop-in hockey shouldn't offer to add a dependent; public skate has no goalies. Demo-testable
   // via ?session=publicskate; real product would derive this from the session's own data, not a
   // URL param. This directly simplifies Checkout's default state per session type, rather than
-  // showing every possible option on every session regardless of relevance. ──
-  const sessionParams = new URLSearchParams(window.location.search);
-  const SESSION_TYPE = sessionParams.get('session') === 'publicskate'
-    ? { name: 'Public Skate — Evening', allowsGoalie: false, allowsDependents: true }
-    : { name: 'Stick & Puck', allowsGoalie: true, allowsDependents: false }; // default: adult drop-in hockey
+  // showing every possible option on every session regardless of relevance.
+  //
+  // Real bug fix, Aug 2026: window.location.search only reflects Checkout's own URL when it's
+  // visited standalone — when embedded via the overlay system, the actual query params live on
+  // window.__rinksideOverlayParams instead (set by openOverlay before this script runs), since
+  // window.location always reflects whatever the HOST page's URL is, never the fetched one. This
+  // was silently defaulting every embedded Checkout open back to Stick & Puck regardless of what
+  // was actually being registered for. ──
+  const sessionParams = new URLSearchParams(window.__rinksideOverlayParams || window.location.search);
+  let SESSION_TYPE;
+  if (sessionParams.get('session') === 'publicskate') {
+    SESSION_TYPE = { name: 'Public Skate — Evening', allowsGoalie: false, allowsDependents: true };
+  } else if (sessionParams.get('session') === 'league') {
+    const leagueName = sessionParams.get('name') || 'League Registration';
+    const leaguePrice = parseFloat(sessionParams.get('price')) || 0;
+    SESSION_TYPE = { name: leagueName, allowsGoalie: false, allowsDependents: false, fixedPrice: leaguePrice };
+  } else {
+    SESSION_TYPE = { name: 'Stick & Puck', allowsGoalie: true, allowsDependents: false }; // default: adult drop-in hockey
+  }
 
   function applySessionTypeVisibility() {
     if (!SESSION_TYPE.allowsGoalie) {
@@ -739,7 +753,7 @@
     } else {
       document.getElementById('add-someone-link').textContent = '+ Add a dependent or another adult';
     }
-    if (sessionParams.get('session') === 'publicskate') {
+    if (SESSION_TYPE.name !== 'Stick & Puck') {
       document.querySelector('.session-title').textContent = SESSION_TYPE.name;
     }
   }
@@ -752,7 +766,12 @@
     const adultCount = payingParticipants.filter(p => p.tier === 'adult').length;
     const childCount = payingParticipants.filter(p => p.tier === 'child').length;
     const goalieCount = participants.length - payingParticipants.length;
-    const sessionPrice = (adultCount * RATES.adult) + (childCount * RATES.child);
+    // League/season registrations are a flat fee, not a per-participant drop-in rate — $275 for
+    // the season isn't "1 adult × $12," it's just $275. Real bug fixed the same day this was
+    // wired up: Checkout was always defaulting to the drop-in rate regardless of context.
+    const sessionPrice = SESSION_TYPE.fixedPrice !== undefined
+      ? SESSION_TYPE.fixedPrice
+      : (adultCount * RATES.adult) + (childCount * RATES.child);
 
     // ── Variable administrative fee (D-1/D-9 revision, Aug 2026 — corrected same day) ──
     // First pass used $0.99/5%, which looked fine on gross fee alone but nets almost nothing
@@ -773,9 +792,11 @@
     const total = sessionPrice - discount + fee + donation;
 
     const parts = [];
-    if (adultCount > 0) parts.push(`${adultCount} adult${adultCount>1?'s':''} × $${RATES.adult.toFixed(2)}`);
-    if (childCount > 0) parts.push(`${childCount} child${childCount>1?'ren':''} × $${RATES.child.toFixed(2)}`);
-    if (goalieCount > 0) parts.push(`${goalieCount} goalie${goalieCount>1?'s':''} free`);
+    if (SESSION_TYPE.fixedPrice === undefined) {
+      if (adultCount > 0) parts.push(`${adultCount} adult${adultCount>1?'s':''} × $${RATES.adult.toFixed(2)}`);
+      if (childCount > 0) parts.push(`${childCount} child${childCount>1?'ren':''} × $${RATES.child.toFixed(2)}`);
+      if (goalieCount > 0) parts.push(`${goalieCount} goalie${goalieCount>1?'s':''} free`);
+    }
 
     if (parts.length > 1) {
       priceSession.innerHTML = `$${sessionPrice.toFixed(2)}<br><span style="font-size:10.5px;color:var(--text-dim);font-weight:300">${parts.join(' + ')}</span>`;
@@ -785,6 +806,12 @@
     priceFee.textContent = `$${fee.toFixed(2)}`;
     document.getElementById('fee-label').textContent = feeIsPercent ? `Administrative fee (6%)` : 'Administrative fee';
     priceTotal.textContent = `$${total.toFixed(2)}`;
+
+    // Real bug fix, Aug 2026, found while wiring in the league registration price: this button's
+    // text was never dynamically updated at all, anywhere — hardcoded to $12.99 in the HTML
+    // regardless of participants, donations, coupons, or now the league fixed price. Would have
+    // shown the wrong amount for literally any change to the order, not just the league case.
+    payBtn.textContent = total > 0 ? `Pay $${total.toFixed(2)} & Book` : 'Register — Free';
 
     const couponRow = document.getElementById('coupon-row');
     const couponLabel = document.getElementById('coupon-code-label');
