@@ -190,6 +190,12 @@
     box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
     animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
     margin-top: 10vh;
+    background: var(--rink-dark, #0b1824);
+    /* Real bug fix, Aug 2026: .page never had its own background, on either of its two rules.
+       Standalone, this looked fine by coincidence — body's own dark background showed through
+       the transparent .page. But Shadow DOM has no real <body> element inside it, so with no
+       background of its own, .page let the host page's content (Explore, Home, etc.) show
+       through directly instead of floating as a solid, opaque sheet. */
   }
   .sheet-handle { width: 40px; height: 4px; background: var(--border-mid); border-radius: 999px; margin: 12px auto 0; }
 
@@ -516,10 +522,32 @@
 
   function handleBookingSuccess() {
     const sessionName = document.querySelector('.session-title')?.textContent || 'your session';
+    const sessionSub = document.querySelector('.session-sub')?.textContent || '';
     document.getElementById('confirmation-session-name').textContent = sessionName;
     document.getElementById('checkout-topbar').style.display = 'none';
     document.getElementById('checkout-main-content').style.display = 'none';
     document.getElementById('confirmation-view').classList.add('show');
+    saveBookingToSchedule(sessionName, sessionSub);
+  }
+
+  // ── Real "add to schedule" feature (Aug 2026) — a completed booking now actually shows up on
+  // Schedule, not just a confirmation toast that goes nowhere. Same localStorage-persistence
+  // pattern already proven for waivers and substitutes, not a new, untested mechanism. ──
+  function saveBookingToSchedule(name, sub) {
+    let bookings;
+    try {
+      bookings = JSON.parse(localStorage.getItem('rinkside-new-bookings')) || [];
+    } catch (e) { bookings = []; }
+    // Parse "Apex Ice Arena · Fri, Aug 14 · 9:00–10:30 PM" into rough date/time parts for display
+    const parts = sub.split('·').map(s => s.trim());
+    bookings.push({
+      name: name,
+      rink: parts[0] || 'Apex Ice Arena',
+      dateLabel: parts[1] || '',
+      timeLabel: parts[2] || '',
+      bookedAt: Date.now(),
+    });
+    localStorage.setItem('rinkside-new-bookings', JSON.stringify(bookings));
   }
 
   function handleConfirmationContinue() {

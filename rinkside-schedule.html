@@ -26,6 +26,12 @@
     --font-body: 'DM Sans', sans-serif;
     --radius: 16px;
     --radius-sm: 10px;
+    /* Real bug fix, Aug 2026 — see Home for the full explanation: :root inside embedded content
+       targets the real document root, not the shadow root, so anything embedded here that uses
+       these variables would silently render with a missing color unless declared here too. */
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
   }
 
   html { font-size: 16px; }
@@ -829,6 +835,61 @@
 
 
 <script>
+  // ── Real "add to schedule" feature (Aug 2026) — reads bookings saved by Checkout and renders
+  // them as real session rows, matching the existing static rows' exact markup, prepended to the
+  // top of the list since a just-booked session is the most immediately relevant one to see. ──
+  function renderNewBookings() {
+    let bookings;
+    try {
+      bookings = JSON.parse(localStorage.getItem('rinkside-new-bookings')) || [];
+    } catch (e) { bookings = []; }
+    if (bookings.length === 0) return;
+
+    const list = document.getElementById('sessions-list');
+    bookings.slice().reverse().forEach(b => {
+      const row = document.createElement('div');
+      row.className = 'session-row';
+      row.dataset.type = 'hockey';
+      row.tabIndex = 0;
+      const dateParts = (b.dateLabel || '').split(' ');
+      row.innerHTML = `
+        <div class="session-date-block">
+          <div class="session-date-mon">${dateParts[0] || 'New'}</div>
+          <div class="session-date-day">${dateParts[1] || ''}</div>
+        </div>
+        <div class="session-info">
+          <div class="session-name">${b.name}</div>
+          <div class="session-sub">${b.rink}</div>
+          <span class="participant-tag">👤 You</span>
+          <span class="s-badge s-badge-blue">Just booked</span>
+        </div>
+        <div class="session-right">
+          <div class="session-time">${b.timeLabel || ''}</div>
+        </div>
+      `;
+      list.insertBefore(row, list.firstChild);
+    });
+  }
+  renderNewBookings();
+
+  // ── Real bug fix, Aug 2026: session rows were never clickable at all — no inline onclick, no
+  // JS-attached listener, nothing. Drop-in sessions (hockey/lessons) route to Manage Booking via
+  // the overlay system, matching how a booked session is handled everywhere else in the app;
+  // team games route to Game Detail via regular navigation, matching how Teams' own game rows
+  // already work — these are two genuinely different destinations, not one fix for both.
+  // Attached after renderNewBookings() runs, not before, so the dynamically-added "Just booked"
+  // row gets click handling too, not just the rows that were already in the static HTML. ──
+  document.querySelectorAll('.session-row').forEach(row => {
+    row.addEventListener('click', () => {
+      if (row.dataset.type === 'teams') {
+        window.location.href = 'rinkside-game-detail.html';
+      } else {
+        openOverlay('rinkside-manage-booking.html');
+      }
+    });
+    row.addEventListener('keydown', e => { if (e.key === 'Enter') row.click(); });
+  });
+
   // ── Toast utility ──
   var toastTimer;
   function showToast(msg) {

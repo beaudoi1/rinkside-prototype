@@ -929,7 +929,12 @@
     }
   };
 
-  let activeTeam = 'wolves';
+  // Real bug fix, Aug 2026: this always defaulted to 'wolves' regardless of how the page was
+  // reached — Home's Friday Pickups chip (and any other future entry point) had no way to land
+  // on the right team, since nothing here ever read a URL param at all.
+  const teamUrlParams = new URLSearchParams(window.location.search);
+  const requestedTeam = teamUrlParams.get('team');
+  let activeTeam = (requestedTeam && teams[requestedTeam]) ? requestedTeam : 'wolves';
 
   function renderTeam(key) {
     const d = teams[key];

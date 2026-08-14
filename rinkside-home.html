@@ -30,6 +30,16 @@
     --font-body: 'DM Sans', sans-serif;
     --radius: 16px;
     --radius-sm: 10px;
+    /* Real bug fix, Aug 2026: these were missing entirely from this file's own :root. Doesn't
+       matter for Home's own styling, but a real, systemic problem for anything embedded via the
+       overlay system — :root inside injected content targets the ACTUAL document root, not the
+       shadow root it's physically injected into, so any embedded page's var(--green) etc. would
+       silently resolve to nothing unless the HOST page already declares it too. This is what
+       made Manage Booking's Check-In button render with a transparent background and invisible
+       text when opened from Home specifically. */
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
   }
 
   html { font-size: 16px; }
@@ -819,7 +829,7 @@
     <button onclick="openOverlay('rinkside-manage-booking.html')" class="checkin-strip-btn" style="border:none;cursor:pointer;">Check In</button>
   </div>
 
-  <div class="recurring-strip" onclick="window.location.href='rinkside-checkout.html'" tabindex="0">
+  <div class="recurring-strip" onclick="openOverlay('rinkside-checkout.html')" tabindex="0">
     <div class="recurring-strip-icon">🔁</div>
     <div class="recurring-strip-text">
       <div class="recurring-strip-title">Stick &amp; Puck — your weekly session</div>
@@ -828,7 +838,7 @@
     <span class="recurring-strip-arrow">›</span>
   </div>
 
-  <div class="recurring-strip" onclick="window.location.href='rinkside-checkout.html'" tabindex="0">
+  <div class="recurring-strip" onclick="openOverlay('rinkside-checkout.html?session=publicskate')" tabindex="0">
     <div class="recurring-strip-icon">🔁</div>
     <div class="recurring-strip-text">
       <div class="recurring-strip-title">Learn to Skate — Emma's weekly session</div>
@@ -904,12 +914,12 @@
     <div class="teams-title">My teams</div>
     <div class="teams-sub">Rosters, schedules &amp; game days</div>
     <div class="teams-roster">
-      <div class="team-chip">
+      <div class="team-chip" data-team="wolves">
         <div class="team-chip-name">Apex Wolves</div>
         <div class="team-chip-meta">Adult Hockey · D2</div>
         <div class="team-chip-next">Game Sat 8:00 PM</div>
       </div>
-      <div class="team-chip">
+      <div class="team-chip" data-team="pickups">
         <div class="team-chip-name">Friday Pickups</div>
         <div class="team-chip-meta">Recreational · 4v4</div>
         <div class="team-chip-next">Next Fri 6:00 AM</div>
@@ -1165,7 +1175,11 @@
   document.querySelectorAll('.team-chip').forEach(chip => {
     chip.addEventListener('click', e => {
       e.stopPropagation();
-      window.location.href = 'rinkside-teams.html';
+      // Real bug fix, Aug 2026: this always navigated to Teams' default (Apex Wolves)
+      // regardless of which chip was actually clicked — Friday Pickups always landed on the
+      // wrong team. Now passes which team was tapped through as a real param.
+      const teamKey = chip.dataset.team;
+      window.location.href = teamKey ? `rinkside-teams.html?team=${teamKey}` : 'rinkside-teams.html';
     });
   });
 

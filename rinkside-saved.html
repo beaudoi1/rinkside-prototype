@@ -26,6 +26,9 @@
     --font-body: 'DM Sans', sans-serif;
     --radius: 16px;
     --radius-sm: 10px;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
   }
 
   html { font-size: 16px; }
@@ -412,6 +415,16 @@
   .chat-send-btn:focus-visible, .chat-input:focus-visible { outline: 2px solid var(--accent, #38bdf8); outline-offset: 2px; }
 
 
+
+  /* ── Fetch-and-inject overlay shell (Aug 2026) ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 500; overflow-y: auto;
+  }
+  .overlay-backdrop.show { display: block; animation: overlayFadeIn 0.2s ease both; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-sheet-host { max-width: 420px; margin: 10vh auto 0; }
+  @media (min-width: 768px) { .overlay-sheet-host { max-width: 480px; margin-top: 6vh; } }
 </style>
 </head>
 <body>
@@ -460,7 +473,7 @@
     <button class="filter-tab" data-filter="skating">Skating</button>
   </div>
 
-  <div class="recurring-strip" onclick="window.location.href='rinkside-checkout.html'" tabindex="0">
+  <div class="recurring-strip" onclick="openOverlay('rinkside-checkout.html')" tabindex="0">
     <div class="recurring-strip-icon">🔁</div>
     <div class="recurring-strip-text">
       <div class="recurring-strip-title">Stick &amp; Puck — your weekly session</div>
@@ -469,7 +482,7 @@
     <span class="recurring-strip-arrow">›</span>
   </div>
 
-  <div class="recurring-strip" onclick="window.location.href='rinkside-checkout.html'" tabindex="0">
+  <div class="recurring-strip" onclick="openOverlay('rinkside-checkout.html?session=publicskate')" tabindex="0">
     <div class="recurring-strip-icon">🔁</div>
     <div class="recurring-strip-text">
       <div class="recurring-strip-title">Learn to Skate — Emma's weekly session</div>
@@ -585,7 +598,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let toastTimer;
+  var toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -644,7 +657,7 @@
 
   // ── Chat widget (Aug 2026) — visual mockup: real open/close/navigate/send interaction,
   // no cross-page persistence. Each page load resets to the same seeded conversations. ──
-  const CHAT_THREADS = {
+  var CHAT_THREADS = {
     wolves: {
       title: 'Apex Wolves',
       messages: [
@@ -670,7 +683,7 @@
       ]
     },
   };
-  let activeChatThread = null;
+  var activeChatThread = null;
 
   function toggleChatPanel() {
     const panel = document.getElementById('chat-panel');
@@ -716,6 +729,109 @@
     input.value = '';
   }
 
+
+
+  var overlayShadowRoot = null;
+
+  // These only ever get called from scripts injected by openOverlay() below (see the text
+  // substitution there) — never from the host page's own code — so overlayShadowRoot is always
+  // valid whenever they actually run.
+  window.__rinksideGetById = (id) => overlayShadowRoot.getElementById ? overlayShadowRoot.getElementById(id) : overlayShadowRoot.querySelector('#' + id);
+  window.__rinksideQuerySelector = (sel) => overlayShadowRoot.querySelector(sel);
+  window.__rinksideQuerySelectorAll = (sel) => overlayShadowRoot.querySelectorAll(sel);
+
+  async function openOverlay(url) {
+    const backdrop = document.getElementById('overlay-backdrop');
+    const host = document.getElementById('overlay-sheet-host');
+
+    // Real bug fix, Aug 2026: window.location.search always reflects the HOST page's own URL,
+    // never the fetched URL's query string — an embedded page's script checking
+    // window.location.search for its own params (like Checkout's ?session= variant) gets nothing,
+    // even when the URL passed here clearly has them. Stored separately so embedded scripts have
+    // a real way to read their own params instead of silently falling back to defaults.
+    const qIndex = url.indexOf('?');
+    window.__rinksideOverlayParams = qIndex !== -1 ? url.slice(qIndex) : '';
+
+    if (!overlayShadowRoot) {
+      overlayShadowRoot = host.attachShadow({ mode: 'open' });
+    }
+    overlayShadowRoot.innerHTML = '<div style="background:var(--rink-panel,#182f42);border-radius:24px;padding:40px;text-align:center;color:#7aa3b8;font-family:sans-serif;">Loading…</div>';
+    backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    window.__rinksideOverlayMode = true;
+    history.pushState({ overlay: url }, '', '');
+
+    try {
+      const res = await fetch(url);
+      const html = await res.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+      // Pull in fonts the embedded page expects (Shadow DOM doesn't inherit <link> from the host)
+      const fontLinks = [...parsed.querySelectorAll('link[href*="fonts.google"]')].map(l => l.outerHTML).join('');
+      const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      const bodyContent = parsed.body.innerHTML;
+
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
+
+      // Re-execute embedded scripts — innerHTML does not run script elements, so each one is
+      // rebuilt and appended manually, which does execute it. Critical fix: Shadow DOM isolates
+      // the DOM tree, so document.getElementById/querySelector calls inside the embedded page's
+      // own script can't see its own elements at all — they'd search the host page's document,
+      // which doesn't contain them. Every embedded page (Checkout, Manage Booking, Session
+      // Detail, League Registration) relies on document.getElementById throughout, so without
+      // this fix their own internal buttons silently fail once loaded, even though the overlay
+      // itself opens correctly. Fixed with targeted text substitution on the script source,
+      // NOT scope-wrapping — wrapping in an IIFE would trap function declarations inside it,
+      // breaking every onclick="" attribute in the injected HTML, since inline handlers look up
+      // functions in global scope. Substitution keeps scripts executing at normal top-level
+      // scope (so their functions still become properly global) while only redirecting the
+      // specific document.* calls that need to reach into the shadow root instead.
+      //
+      // Second real bug, found via actual HTTP testing (file:// silently blocks fetch() entirely,
+      // which hid this for a long time): every embedded page's script shares this file's own
+      // global scope (Shadow DOM isolates the DOM tree and CSS, not JS scope), and top-level
+      // `let`/`const` declarations throw a hard redeclaration error if the identifier already
+      // exists globally — e.g. every file's own `let toastTimer` collides with the host page's
+      // identical declaration. Converts top-level `let`/`const` to `var` (redeclaration-safe)
+      // using this codebase's consistent 2-space top-level indentation as the signal for
+      // "top-level," so declarations nested inside functions/loops are left alone.
+      const scripts = overlayShadowRoot.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        let src = oldScript.textContent;
+        src = src.replace(/document\.getElementById\(/g, 'window.__rinksideGetById(');
+        src = src.replace(/document\.querySelectorAll\(/g, 'window.__rinksideQuerySelectorAll(');
+        src = src.replace(/document\.querySelector\(/g, 'window.__rinksideQuerySelector(');
+        src = src.replace(/^  let /gm, '  var ');
+        src = src.replace(/^  const /gm, '  var ');
+        newScript.textContent = src;
+        oldScript.replaceWith(newScript);
+      });
+    } catch (err) {
+      overlayShadowRoot.innerHTML = '<div style="background:#182f42;border-radius:24px;padding:40px;text-align:center;color:#f87171;font-family:sans-serif;">Couldn\'t load this — try again.</div>';
+    }
+  }
+
+  function closeOverlay() {
+    const backdrop = document.getElementById('overlay-backdrop');
+    backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    window.__rinksideOverlayMode = false;
+    if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+    if (history.state && history.state.overlay) history.back();
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!(history.state && history.state.overlay)) {
+      const backdrop = document.getElementById('overlay-backdrop');
+      if (backdrop.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        window.__rinksideOverlayMode = false;
+        if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+      }
+    }
+  });
 
 </script>
 
@@ -773,6 +889,10 @@
       <button class="chat-send-btn" onclick="sendChatMessage()" aria-label="Send">➤</button>
     </div>
   </div>
+</div>
+
+<div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
+  <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
 </div>
 
 </body>
