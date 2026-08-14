@@ -555,6 +555,23 @@
     document.getElementById('chat-view-list').classList.add('active');
   }
 
+  // ── Follow toggle — found missing during a full-app audit, Aug 2026. Called via onclick but
+  // never defined anywhere in the file, almost certainly lost during the earlier file-corruption
+  // reconstruction (the extraction was based on Explore's/Schedule's script structure, which
+  // never had this function to begin with, since it's specific to Team Profile). ──
+  let isFollowing = false;
+  function toggleFollow() {
+    isFollowing = !isFollowing;
+    const btn = document.getElementById('follow-btn');
+    const icon = document.getElementById('follow-icon');
+    const text = document.getElementById('follow-text');
+    btn.classList.toggle('following', isFollowing);
+    icon.textContent = isFollowing ? '★' : '☆';
+    text.textContent = isFollowing ? 'Following' : 'Follow this team';
+    const currentTeamName = document.getElementById('team-name')?.textContent || 'this team';
+    showToast(isFollowing ? `✓ Following ${currentTeamName} — you'll get updates` : `Unfollowed ${currentTeamName}`);
+  }
+
   function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();

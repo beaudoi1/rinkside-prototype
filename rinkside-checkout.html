@@ -751,7 +751,13 @@
     if (!SESSION_TYPE.allowsDependents) {
       document.getElementById('add-someone-link').style.display = 'none';
     } else {
-      document.getElementById('add-someone-link').textContent = '+ Add a dependent or another adult';
+      document.getElementById('add-someone-link').textContent = '+ Add a dependent';
+      // Real inconsistency found and fixed during a full-app audit, Aug 2026: this used to say
+      // "+ Add a dependent or another adult," which contradicted the later decision that each
+      // adult registers separately (no shared-booking flow for adults) — and even before that
+      // decision, the text was already inaccurate, since saveDependent() always hardcodes child
+      // tier regardless of what this link claimed, so "adding an adult" here would have silently
+      // charged the child rate.
     }
     if (SESSION_TYPE.name !== 'Stick & Puck') {
       document.querySelector('.session-title').textContent = SESSION_TYPE.name;
