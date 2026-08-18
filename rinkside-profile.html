@@ -147,6 +147,7 @@
   .dep-manage-remove { flex: 1; padding: 10px; border-radius: 8px; background: none; border: 1.5px solid rgba(248,113,113,0.4); color: #f87171; font-weight: 600; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-manage-save { flex: 1; padding: 10px; border-radius: 8px; background: var(--accent); border: none; color: var(--rink-dark); font-weight: 700; font-size: 11.5px; cursor: pointer; font-family: var(--font-body); }
   .dep-field-label { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+  .dep-hint { font-size: 10px; color: var(--text-dim); font-weight: 300; margin: -3px 0 10px; line-height: 1.4; }
   .accordion-label { font-size: 14px; font-weight: 500; }
   .accordion-sub   { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
   .accordion-chevron { color: var(--text-dim); transition: transform 0.22s ease; flex-shrink: 0; }
@@ -635,6 +636,15 @@
           <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
           <input type="text" class="dep-manage-input" id="dep-manage-usah" placeholder="e.g. 12345678">
 
+          <!-- Real bug fix, Aug 2026: this panel never had these fields at all — an existing
+               dependent created before this feature existed had no way to retroactively set up
+               multi-guardian linking, and no way to change it if it was already set. -->
+          <p class="dep-field-label">Dependent username <span style="font-weight:300;color:var(--text-dim)">(for other guardians to link)</span></p>
+          <input type="text" class="dep-manage-input" id="dep-manage-username" placeholder="e.g. emma-r2016">
+          <p class="dep-field-label">Link password <span style="font-weight:300;color:var(--text-dim)">(leave blank to keep unchanged)</span></p>
+          <input type="password" class="dep-manage-input" id="dep-manage-link-password" placeholder="Set or change password">
+          <p class="dep-hint">Share this only with other guardians you trust — anyone with the username and this password can link to this profile.</p>
+
           <div class="self-service-row" id="self-service-row" style="display:none">
             <label class="self-service-toggle-label">
               <input type="checkbox" id="self-service-toggle" onchange="toggleSelfServiceSetup()">
@@ -692,6 +702,14 @@
           <input type="date" class="dep-manage-input" id="dep-add-dob" aria-label="Date of birth">
           <p class="dep-field-label">USA Hockey # <span style="font-weight:300;color:var(--text-dim)">(if applicable)</span></p>
           <input type="text" class="dep-manage-input" id="dep-add-usah" placeholder="e.g. 12345678">
+          <!-- Real bug fix, Aug 2026: this panel never had these fields at all, despite Checkout's
+               own "new dependent" panel having them from the start — the same conceptual action
+               had two different capabilities depending on where you did it. -->
+          <p class="dep-field-label">Dependent username <span style="font-weight:300;color:var(--text-dim)">(for other guardians to link)</span></p>
+          <input type="text" class="dep-manage-input" id="dep-add-username" placeholder="e.g. emma-r2016">
+          <p class="dep-field-label">Link password <span style="font-weight:300;color:var(--text-dim)">(required for anyone else to link this profile)</span></p>
+          <input type="password" class="dep-manage-input" id="dep-add-link-password" placeholder="Set a password">
+          <p class="dep-hint" style="margin-left:0">Share this only with other guardians you trust — anyone with the username and this password can link to this profile.</p>
           <button class="dep-manage-save" style="width:100%" onclick="addNewDependent()">Save new profile</button>
         </div>
       </div>
@@ -841,6 +859,10 @@
       // was locked, and nothing to actually edit going forward. Falls back to an empty field only
       // for a genuinely new/never-set DOB, not for every existing profile.
       document.getElementById('dep-manage-dob').value = card.dataset.dob || '';
+      // Real bug fix, Aug 2026: this handler never populated the username field at all, meaning
+      // it would silently show whatever was left over from the last dependent's edit panel
+      // rather than this card's own value (or correctly blank, for one that never had one set).
+      document.getElementById('dep-manage-username').value = card.dataset.username || '';
       document.getElementById('self-service-name').textContent = card.dataset.name.split(' ')[0];
       checkSelfServiceEligibility(parseInt(card.dataset.age) || null);
       const panel = document.getElementById('dep-manage-panel');
@@ -925,6 +947,18 @@
     activeDepCard.dataset.usah = document.getElementById('dep-manage-usah').value.trim();
     activeDepCard.querySelector('.kid-name').textContent = newName;
 
+    // Real bug fix, Aug 2026: neither username nor link-password were ever captured here at all.
+    // Password field intentionally left blank on every open (browsers don't re-display saved
+    // passwords, and shouldn't) — blank on save means "leave the existing password unchanged,"
+    // not "clear it." Only overwrite if the parent actually typed something new.
+    activeDepCard.dataset.username = document.getElementById('dep-manage-username').value.trim();
+    const newLinkPassword = document.getElementById('dep-manage-link-password').value;
+    if (newLinkPassword) {
+      activeDepCard.dataset.linkPasswordSet = 'true'; // real password value never stored in a
+      // data attribute in this prototype — would be hashed server-side in the real product;
+      // this just tracks that one exists, for demo purposes.
+    }
+
     // Real bug fix, Aug 2026: this never read the DOB field at all, so editing a birthdate never
     // updated the age shown under the kid's name — it would silently keep showing the old value
     // (or "New profile" forever, for a newly-created kid) regardless of what was actually saved.
@@ -941,6 +975,8 @@
       if (ageEl) ageEl.textContent = `Age ${age}`;
     }
 
+    document.getElementById('dep-manage-link-password').value = ''; // never leave a typed
+    // password sitting in the DOM after save, even though it was never displayed as pre-filled
     document.getElementById('dep-manage-panel').classList.remove('show');
     const selfServiceOn = document.getElementById('self-service-toggle').checked;
     showToast(selfServiceOn
@@ -966,24 +1002,41 @@
     const last = document.getElementById('dep-add-last').value.trim();
     if (!first || !last) { showToast('Enter a first and last name'); return; }
 
+    // Real bug fix, Aug 2026: DOB entered here was never actually saved anywhere — only cleared
+    // from the input afterward. A newly-created kid would show "New profile" forever until
+    // someone separately opened Edit and re-entered the same date a second time.
+    const dobValue = document.getElementById('dep-add-dob').value;
+    let ageAtCreation = '';
+    if (dobValue) {
+      const dob = new Date(dobValue);
+      const today = new Date();
+      ageAtCreation = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) ageAtCreation--;
+    }
+
     const card = document.createElement('div');
     card.className = 'kid-card';
     card.tabIndex = 0;
     card.dataset.name = `${first} ${last}`;
-    card.dataset.age = '';
+    card.dataset.age = ageAtCreation;
+    card.dataset.dob = dobValue;
     card.dataset.usah = document.getElementById('dep-add-usah').value.trim();
+    // Real bug fix, Aug 2026: this panel never had these fields at all, despite Checkout's own
+    // "new dependent" panel having them from the start.
+    card.dataset.username = document.getElementById('dep-add-username').value.trim();
     const initials = (first[0] + (last[0] || '')).toUpperCase();
-    card.innerHTML = `<div class="kid-card-left"><div class="kid-avatar">${initials}</div><div><div class="kid-name">${first} ${last}</div><div class="kid-age">New profile</div></div></div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>`;
+    const ageLabel = ageAtCreation !== '' ? `Age ${ageAtCreation}` : 'New profile';
+    card.innerHTML = `<div class="kid-card-left"><div class="kid-avatar">${initials}</div><div><div class="kid-name">${first} ${last}</div><div class="kid-age">${ageLabel}</div></div></div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>`;
     card.addEventListener('click', () => {
       document.getElementById('dep-add-panel').classList.remove('show');
       activeDepCard = card;
       document.getElementById('dep-manage-name').value = card.dataset.name;
       document.getElementById('dep-manage-usah').value = card.dataset.usah || '';
       document.getElementById('dep-manage-dob').value = card.dataset.dob || '';
+      document.getElementById('dep-manage-username').value = card.dataset.username || '';
       document.getElementById('self-service-name').textContent = card.dataset.name.split(' ')[0];
-      checkSelfServiceEligibility(null); // real bug fix: this was missing entirely, meaning a
-      // newly-created kid would show whatever locked/unlocked state was last left on screen
-      // rather than a correct one for a brand-new profile with no DOB set yet.
+      checkSelfServiceEligibility(parseInt(card.dataset.age) || null);
       const panel = document.getElementById('dep-manage-panel');
       card.after(panel);
       panel.classList.add('show');
@@ -995,6 +1048,8 @@
     document.getElementById('dep-add-last').value = '';
     document.getElementById('dep-add-dob').value = '';
     document.getElementById('dep-add-usah').value = '';
+    document.getElementById('dep-add-username').value = '';
+    document.getElementById('dep-add-link-password').value = '';
     document.getElementById('dep-add-panel').classList.remove('show');
     showToast(`✓ ${first} added — saved to your account`);
   }

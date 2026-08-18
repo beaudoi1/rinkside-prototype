@@ -768,7 +768,7 @@
     const leaguePrice = parseFloat(sessionParams.get('price')) || 0;
     SESSION_TYPE = { name: leagueName, allowsGoalie: false, allowsDependents: false, fixedPrice: leaguePrice };
   } else {
-    SESSION_TYPE = { name: 'Stick & Puck', allowsGoalie: true, allowsDependents: false }; // default: adult drop-in hockey
+    SESSION_TYPE = { name: 'Stick & Puck', allowsGoalie: true, allowsDependents: true }; // adult drop-in hockey — dependents ARE allowed here (a parent adding their own kid), the real, separate rule is that adults can't register OTHER adults through this same flow
   }
 
   function applySessionTypeVisibility() {
