@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rinkside — Player Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rink-dark: #0b1824; --rink-mid: #132233; --rink-panel: #182f42;
+    --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.18);
+    --accent-purple: #a78bfa; --accent-purple-glow: rgba(167,139,250,0.15);
+    --text-primary: #f0f8ff; --text-muted: #7fa9c0; --text-dim: #7aa3b8;
+    --border: rgba(56,189,248,0.12); --border-mid: rgba(56,189,248,0.22);
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+    --radius: 16px; --radius-sm: 10px;
+    --green:#4ade80;
+  }
+  html { font-size: 16px; }
+  body { font-family: var(--font-body); background: var(--rink-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+  .page { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 0 0 40px; min-height: 90vh; overflow: hidden; }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--rink-panel); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; text-decoration: none; color: var(--text-primary); }
+  .back-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .topbar h1 { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
+
+  .content { padding: 20px; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; margin-top: 24px; }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── Player header — modeled on the NHL app's player page: photo/avatar, name, and the
+     #jersey · position · age · team meta line, over a subtle team-color wash ── */
+  .player-header { position: relative; border-radius: var(--radius); padding: 22px 18px; margin-bottom: 4px; overflow: hidden; background: linear-gradient(135deg, #16283a, #182f42); border: 1px solid var(--border-mid); }
+  .player-header::after { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, var(--accent-purple-glow), transparent 70%); pointer-events: none; }
+  .player-header-row { display: flex; align-items: center; gap: 14px; position: relative; }
+  .player-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-purple-glow); border: 2px solid rgba(167,139,250,0.35); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--accent-purple); flex-shrink: 0; }
+  .player-name { font-family: var(--font-display); font-size: 20px; font-weight: 800; line-height: 1.15; }
+  .player-meta { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: 4px; }
+  .player-meta .dot { color: var(--text-dim); margin: 0 5px; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stat-card { background: var(--rink-panel); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; }
+  .stat-card.hi { border-color: var(--border-mid); background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(56,189,248,0.02)); }
+  .stat-val { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+  .stat-label { font-size: 9.5px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 420px; }
+  th { font-size: 9.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; text-align: center; padding: 8px 6px; border-bottom: 1px solid var(--border-mid); }
+  th:first-child, td:first-child { text-align: left; padding-left: 4px; }
+  td { font-size: 12.5px; text-align: center; padding: 10px 6px; border-bottom: 1px solid var(--border); }
+  .season-team { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+  .current-row td { background: rgba(56,189,248,0.05); }
+  .current-row td:first-child { font-weight: 700; color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: 12.5px; line-height: 1.6; }
+  .empty-state-icon { font-size: 28px; margin-bottom: 10px; }
+
+  /* ============ FLOATING SHEET TREATMENT — same as Checkout/Manage Booking/Session Detail ============ */
+  html, body { background: rgba(0,0,0,0.55); }
+  .page {
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+    margin-top: 10vh;
+    background: var(--rink-dark, #0b1824);
+  }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border-mid); border-radius: 999px; margin: 12px auto 0; }
+  @keyframes sheetSlideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  @media (min-width: 768px) {
+    .page { max-width: 480px; margin: 6vh auto 0; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="sheet-handle"></div>
+
+  <div class="topbar">
+    <a class="back-btn" href="rinkside-profile.html" aria-label="Back to Profile" onclick="if(window.__rinksideOverlayMode && window.closeOverlay){window.closeOverlay();return false;} if(window.history.length>1){history.back();return false;}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1 id="stats-title">Player Stats</h1>
+  </div>
+
+  <div class="content" id="stats-content">
+    <!-- populated by renderPlayerStats() below -->
+  </div>
+</div>
+
+<script>
+  // ── Lifelong player stats (Sep 2026) — opened from the Profile page's kid-cards, styled after
+  // the NHL app's player page (photo/name header, a season vs. career stat snapshot, then a
+  // season-by-season table). Seeded, static data for the prototype's two demo dependents; any
+  // other id (including a freshly-added dependent, which has no seasons on record yet) falls
+  // back to an honest empty state instead of guessing at numbers. Columns match the ones already
+  // established on the Stats page (GP/G/A/PTS/+/-/PIM) rather than inventing NHL-style fields
+  // (TOI, faceoff %, etc.) this prototype's data model doesn't otherwise track. ──
+  var PLAYER_DATA = {
+    alexjr: {
+      name: 'Alex Jr.',
+      initials: 'AJ',
+      position: 'Forward',
+      age: 8,
+      jersey: '14',
+      team: 'Apex Wolves · 8U',
+      seasonLabel: '2025–26',
+      season: { gp: 11, g: 9, a: 7, p: 16, plusMinus: '+8', pim: 6 },
+      career: { gp: 34, g: 22, a: 19, p: 41, plusMinus: '+19', pim: 14 },
+      seasons: [
+        { season: '2023–24', team: 'Apex Mites · 6U', gp: 12, g: 5, a: 4, p: 9, plusMinus: '+3' },
+        { season: '2024–25', team: 'Apex Wolves · 8U', gp: 11, g: 8, a: 8, p: 16, plusMinus: '+8' },
+        { season: '2025–26', team: 'Apex Wolves · 8U', gp: 11, g: 9, a: 7, p: 16, plusMinus: '+8' },
+      ]
+    },
+    mayarivera: {
+      name: 'Maya Rivera',
+      initials: 'MR',
+      position: 'Defense',
+      age: 11,
+      jersey: '7',
+      team: 'Littleton Hawks · 12U',
+      seasonLabel: '2025–26',
+      season: { gp: 14, g: 2, a: 11, p: 13, plusMinus: '+12', pim: 8 },
+      career: { gp: 58, g: 9, a: 34, p: 43, plusMinus: '+31', pim: 22 },
+      seasons: [
+        { season: '2022–23', team: 'Littleton Hawks · 10U', gp: 16, g: 2, a: 6, p: 8, plusMinus: '+5' },
+        { season: '2023–24', team: 'Littleton Hawks · 10U', gp: 15, g: 3, a: 9, p: 12, plusMinus: '+9' },
+        { season: '2024–25', team: 'Littleton Hawks · 12U', gp: 13, g: 2, a: 8, p: 10, plusMinus: '+5' },
+        { season: '2025–26', team: 'Littleton Hawks · 12U', gp: 14, g: 2, a: 11, p: 13, plusMinus: '+12' },
+      ]
+    },
+    // Account holder's own history (Sep 2026) — same page, no jersey number or age tracked
+    // anywhere else in this prototype for the adult account, so those fields are just omitted
+    // rather than invented; "role" carries the Captain badge already shown on the Profile hero
+    // card instead. Current-season line matches the leader row already seeded on the Stats page
+    // (rinkside-stats.html: J. Rivera, Centre, 11 GP / 9 G / 7 A / 16 PTS / +8 / 6 PIM) so the two
+    // pages agree with each other rather than drifting into separate numbers for the same person.
+    jordanrivera: {
+      name: 'Jordan Rivera',
+      initials: 'JR',
+      position: 'Centre',
+      role: 'Captain — Apex Wolves',
+      team: 'Apex Wolves',
+      seasonLabel: '2025–26',
+      season: { gp: 11, g: 9, a: 7, p: 16, plusMinus: '+8', pim: 6 },
+      career: { gp: 83, g: 60, a: 64, p: 124, plusMinus: '+27', pim: 46 },
+      seasons: [
+        { season: '2023–24', team: 'Apex Wolves', gp: 34, g: 21, a: 24, p: 45, plusMinus: '+5' },
+        { season: '2024–25', team: 'Apex Wolves', gp: 38, g: 30, a: 33, p: 63, plusMinus: '+14' },
+        { season: '2025–26', team: 'Apex Wolves', gp: 11, g: 9, a: 7, p: 16, plusMinus: '+8' },
+      ]
+    }
+  };
+
+  function getParam(name) {
+    // Real bug fix precedent (Aug 2026, Checkout): window.location.search always reflects the
+    // HOST page's URL when this loads inside the Shadow DOM overlay, never the fetched URL's own
+    // query string — openOverlay() stores the real one on window.__rinksideOverlayParams instead.
+    const qs = (window.__rinksideOverlayMode && window.__rinksideOverlayParams)
+      ? window.__rinksideOverlayParams
+      : window.location.search;
+    return new URLSearchParams(qs).get(name) || '';
+  }
+
+  function renderPlayerStats() {
+    var id = getParam('id');
+    const fallbackName = getParam('name') || 'Player';
+    // Preview fallback (Sep 2026): opening this file directly — e.g. double-clicking it instead
+    // of tapping into it from Profile — has no id/name query string at all, and every overlay
+    // page in this prototype fetches via JS, which browsers block under file:// (no local server
+    // running). Rather than showing the "no stats yet" empty state for that case, default to a
+    // seeded sample so the page is actually reviewable standalone. This only fires when id is
+    // missing outright — a real but unrecognized id (a freshly-added kid with no seasons yet)
+    // still correctly falls through to the genuine empty state below.
+    if (!id && !getParam('name')) id = 'jordanrivera';
+    const data = PLAYER_DATA[id];
+    const titleEl = window.__rinksideGetById ? window.__rinksideGetById('stats-title') : document.getElementById('stats-title');
+    const content = window.__rinksideGetById ? window.__rinksideGetById('stats-content') : document.getElementById('stats-content');
+
+    if (!data) {
+      titleEl.textContent = `${fallbackName}'s Stats`;
+      const initials = fallbackName.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+      content.innerHTML = `
+        <div class="player-header">
+          <div class="player-header-row">
+            <div class="player-avatar">${initials || '?'}</div>
+            <div>
+              <div class="player-name">${fallbackName}</div>
+              <div class="player-meta">No seasons on record yet</div>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state">
+          <div class="empty-state-icon">🏒</div>
+          No stats logged yet.<br>Stats appear here once ${fallbackName.split(' ')[0]} plays a tracked season with a team or league on Rinkside.
+        </div>`;
+      return;
+    }
+
+    titleEl.textContent = `${data.name}'s Stats`;
+    // Meta line varies by who this is: kids show #jersey / position / age / team; the account
+    // holder has no jersey number or age tracked anywhere in this prototype, and shows their
+    // Captain role instead — built from parts rather than a fixed template so neither shape has
+    // to fake a field the other doesn't have.
+    const metaParts = [
+      data.jersey ? `#${data.jersey}` : null,
+      data.position,
+      data.age ? `Age ${data.age}` : null,
+      data.role || data.team,
+    ].filter(Boolean);
+    content.innerHTML = `
+      <div class="player-header">
+        <div class="player-header-row">
+          <div class="player-avatar">${data.initials}</div>
+          <div>
+            <div class="player-name">${data.name}</div>
+            <div class="player-meta">${metaParts.join('<span class="dot">·</span>')}</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">${data.seasonLabel} season</p>
+      <div class="stats-grid">
+        <div class="stat-card hi"><div class="stat-val">${data.season.gp}</div><div class="stat-label">GP</div></div>
+        <div class="stat-card hi"><div class="stat-val">${data.season.g}</div><div class="stat-label">G</div></div>
+        <div class="stat-card hi"><div class="stat-val">${data.season.a}</div><div class="stat-label">A</div></div>
+        <div class="stat-card hi"><div class="stat-val">${data.season.p}</div><div class="stat-label">PTS</div></div>
+        <div class="stat-card hi"><div class="stat-val">${data.season.plusMinus}</div><div class="stat-label">+/-</div></div>
+        <div class="stat-card hi"><div class="stat-val">${data.season.pim}</div><div class="stat-label">PIM</div></div>
+      </div>
+
+      <p class="section-label">Career</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val">${data.career.gp}</div><div class="stat-label">GP</div></div>
+        <div class="stat-card"><div class="stat-val">${data.career.g}</div><div class="stat-label">G</div></div>
+        <div class="stat-card"><div class="stat-val">${data.career.a}</div><div class="stat-label">A</div></div>
+        <div class="stat-card"><div class="stat-val">${data.career.p}</div><div class="stat-label">PTS</div></div>
+        <div class="stat-card"><div class="stat-val">${data.career.plusMinus}</div><div class="stat-label">+/-</div></div>
+        <div class="stat-card"><div class="stat-val">${data.career.pim}</div><div class="stat-label">PIM</div></div>
+      </div>
+
+      <p class="section-label">Season by season</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Season</th><th>GP</th><th>G</th><th>A</th><th>PTS</th><th>+/-</th></tr></thead>
+          <tbody>
+            ${data.seasons.slice().reverse().map((s, i) => `
+              <tr${i === 0 ? ' class="current-row"' : ''}>
+                <td>${s.season}<div class="season-team">${s.team}</div></td>
+                <td>${s.gp}</td><td>${s.g}</td><td>${s.a}</td><td>${s.p}</td><td>${s.plusMinus}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  renderPlayerStats();
+</script>
+</body>
+</html>

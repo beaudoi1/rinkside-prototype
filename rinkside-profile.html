@@ -47,6 +47,11 @@
   .profile-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 3px; }
   .profile-handle { font-size: 13px; color: var(--text-muted); font-weight: 300; margin-bottom: 16px; }
   .profile-stats { display: flex; justify-content: center; }
+  .career-overview-btn { position: relative; width: 100%; background: none; border: none; padding: 0; font-family: inherit; color: inherit; text-decoration: none; cursor: pointer; border-radius: var(--radius-sm); transition: background 0.15s; }
+  .career-overview-btn:hover { background: rgba(56,189,248,0.05); }
+  .career-overview-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .career-overview-btn .profile-stat:last-of-type { padding-right: 22px; }
+  .career-overview-chevron { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
   .profile-stat { flex: 1; padding: 10px 8px; border-right: 1px solid var(--border); }
   .profile-stat:last-child { border-right: none; }
   .profile-stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
@@ -119,6 +124,25 @@
   .kid-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-purple-glow); border: 1px solid rgba(167,139,250,0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--accent-purple); }
   .kid-name { font-size: 13px; font-weight: 500; }
   .kid-age  { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+  /* Lifelong stats link (Sep 2026) — a second tap target on the card, distinct from the card's
+     own click-to-manage area, styled like the NHL app's player-page entry point. Stops
+     propagation so tapping it opens the stats overlay instead of the dependent-edit panel. */
+  .kid-card-right { display: flex; align-items: center; gap: 10px; }
+  .kid-stats-btn { display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--accent); background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); border-radius: 999px; padding: 5px 10px 5px 8px; cursor: pointer; font-family: var(--font-body); transition: background 0.15s, border-color 0.15s; }
+  .kid-stats-btn:hover { background: rgba(56,189,248,0.18); border-color: rgba(56,189,248,0.4); }
+  .kid-stats-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ── Fetch-and-inject overlay shell (Sep 2026) — same pattern as Home/Schedule/Explore/
+     Rink Profile/Team Profile: Shadow DOM host, fetched page's <style>+body injected in,
+     scripts re-executed with document.* calls redirected into the shadow root. ── */
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 500; overflow-y: auto;
+  }
+  .overlay-backdrop.show { display: block; animation: overlayFadeIn 0.2s ease both; }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .overlay-sheet-host { max-width: 420px; margin: 10vh auto 0; }
+  @media (min-width: 768px) { .overlay-sheet-host { max-width: 480px; margin-top: 6vh; } }
   .add-kid-btn { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--accent); background: none; border: 1px dashed rgba(56,189,248,0.25); border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s, background 0.15s; width: 100%; justify-content: center; }
   .add-kid-btn:hover { border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.04); }
   .dep-manage-panel { display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; }
@@ -362,12 +386,30 @@
     <div style="text-align:center; margin-bottom:14px;">
       <span style="font-size:10.5px; font-weight:700; color:var(--amber); background:rgba(251,191,36,0.12); padding:4px 12px; border-radius:999px;">🔑 Captain — Apex Wolves</span>
     </div>
-    <div class="profile-stats">
-      <div class="profile-stat"><div class="profile-stat-val">47</div><div class="profile-stat-label">Sessions</div></div>
-      <div class="profile-stat"><div class="profile-stat-val">2</div><div class="profile-stat-label">Teams</div></div>
-      <div class="profile-stat"><div class="profile-stat-val">4</div><div class="profile-stat-label">Saved rinks</div></div>
-      <div class="profile-stat"><div class="profile-stat-val">3yr</div><div class="profile-stat-label">Member</div></div>
-    </div>
+    <!-- Career overview (Sep 2026) — replaces the old Sessions/Teams/Saved rinks/Member row.
+         Real information tradeoff, not a silent removal: those four values aren't shown anywhere
+         else in the app as of this change (grepped — this was their only appearance), so account
+         tenure and saved-rink/team counts genuinely drop off the profile's front screen. Kept the
+         same visual slot deliberately so the loss reads as an intentional swap, not breakage.
+         The whole row is now the tap target for lifelong stats, rendered by renderCareerOverview()
+         below rather than hardcoded, so the goalie stat set (GP/W/SV%/GAA) is real, working code
+         for whenever an account is actually a goalie — not just a comment describing intent —
+         even though every seeded account today is a skater.
+
+         Real anchor with a real href (Sep 2026 fix), not just a button with an onclick: the
+         fetch-and-inject overlay can't fetch a sibling file over file:// (no server, browsers
+         block it) — same reason every overlay page's own back button already falls back to plain
+         navigation instead of relying only on closeOverlay(). Previously this was a <button> with
+         no href at all, so under file:// tapping it did nothing visible. Now it navigates for
+         real when the overlay can't run, and still opens as an overlay (no full page reload) when
+         it can. -->
+    <a class="profile-stats career-overview-btn" href="rinkside-player-stats.html?id=jordanrivera&name=Jordan%20Rivera" id="career-overview-btn" onclick="return handleMyStatsClick(event)" aria-label="Career overview — view my lifelong stats">
+      <div class="profile-stat" id="career-stat-1"><div class="profile-stat-val"></div><div class="profile-stat-label"></div></div>
+      <div class="profile-stat" id="career-stat-2"><div class="profile-stat-val"></div><div class="profile-stat-label"></div></div>
+      <div class="profile-stat" id="career-stat-3"><div class="profile-stat-val"></div><div class="profile-stat-label"></div></div>
+      <div class="profile-stat" id="career-stat-4"><div class="profile-stat-val"></div><div class="profile-stat-label"></div></div>
+      <svg class="career-overview-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
   </div>
 
   <!-- Achievements -->
@@ -607,7 +649,7 @@
     </div>
     <div class="accordion-panel" id="panel-kids">
       <div class="kids-panel-inner">
-        <div class="kid-card" tabindex="0" data-name="Alex Jr." data-age="8" data-dob="2018-03-14" data-usah="">
+        <div class="kid-card" tabindex="0" data-name="Alex Jr." data-age="8" data-dob="2018-03-14" data-usah="" data-player-id="alexjr">
           <div class="kid-card-left">
             <div class="kid-avatar">AJ</div>
             <div>
@@ -615,9 +657,12 @@
               <div class="kid-age">Age 8</div>
             </div>
           </div>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+          <div class="kid-card-right">
+            <button class="kid-stats-btn" type="button" aria-label="View Alex Jr.'s lifelong stats" onclick="event.stopPropagation(); openPlayerStats(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats</button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
         </div>
-        <div class="kid-card" tabindex="0" data-name="Maya Rivera" data-age="11" data-dob="2014-11-02" data-usah="">
+        <div class="kid-card" tabindex="0" data-name="Maya Rivera" data-age="11" data-dob="2014-11-02" data-usah="" data-player-id="mayarivera">
           <div class="kid-card-left">
             <div class="kid-avatar">MR</div>
             <div>
@@ -625,7 +670,10 @@
               <div class="kid-age">Age 11</div>
             </div>
           </div>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+          <div class="kid-card-right">
+            <button class="kid-stats-btn" type="button" aria-label="View Maya Rivera's lifelong stats" onclick="event.stopPropagation(); openPlayerStats(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats</button>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
         </div>
 
         <div class="dep-manage-panel" id="dep-manage-panel">
@@ -735,6 +783,10 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="overlay-backdrop" id="overlay-backdrop" onclick="if(event.target===this) closeOverlay()">
+  <div class="overlay-sheet-host" id="overlay-sheet-host"></div>
+</div>
+
 <script>
   let toastTimer;
   function showToast(msg) {
@@ -744,6 +796,134 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
+
+  // ── Fetch-and-inject overlay shell (Sep 2026) — same Shadow DOM pattern used by
+  // Home/Schedule/Explore/Rink Profile/Team Profile for Checkout, Manage Booking, Session
+  // Detail, and League Registration. Added here to open the new lifelong-stats page from a
+  // kid-card without navigating away from Profile. ──
+  var overlayShadowRoot = null;
+
+  window.__rinksideGetById = (id) => overlayShadowRoot.getElementById ? overlayShadowRoot.getElementById(id) : overlayShadowRoot.querySelector('#' + id);
+  window.__rinksideQuerySelector = (sel) => overlayShadowRoot.querySelector(sel);
+  window.__rinksideQuerySelectorAll = (sel) => overlayShadowRoot.querySelectorAll(sel);
+
+  async function openOverlay(url) {
+    const backdrop = document.getElementById('overlay-backdrop');
+    const host = document.getElementById('overlay-sheet-host');
+
+    const qIndex = url.indexOf('?');
+    window.__rinksideOverlayParams = qIndex !== -1 ? url.slice(qIndex) : '';
+
+    if (!overlayShadowRoot) {
+      overlayShadowRoot = host.attachShadow({ mode: 'open' });
+    }
+    overlayShadowRoot.innerHTML = '<div style="background:var(--rink-panel,#182f42);border-radius:24px;padding:40px;text-align:center;color:#7aa3b8;font-family:sans-serif;">Loading…</div>';
+    backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    window.__rinksideOverlayMode = true;
+    history.pushState({ overlay: url }, '', '');
+
+    try {
+      const res = await fetch(url);
+      const html = await res.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+      const fontLinks = [...parsed.querySelectorAll('link[href*="fonts.google"]')].map(l => l.outerHTML).join('');
+      const styleContent = [...parsed.querySelectorAll('style')].map(s => s.textContent).join('\n');
+      const bodyContent = parsed.body.innerHTML;
+
+      overlayShadowRoot.innerHTML = `${fontLinks}<style>${styleContent}</style>${bodyContent}`;
+
+      const scripts = overlayShadowRoot.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        let src = oldScript.textContent;
+        src = src.replace(/document\.getElementById\(/g, 'window.__rinksideGetById(');
+        src = src.replace(/document\.querySelectorAll\(/g, 'window.__rinksideQuerySelectorAll(');
+        src = src.replace(/document\.querySelector\(/g, 'window.__rinksideQuerySelector(');
+        src = src.replace(/^  let /gm, '  var ');
+        src = src.replace(/^  const /gm, '  var ');
+        newScript.textContent = src;
+        oldScript.replaceWith(newScript);
+      });
+    } catch (err) {
+      overlayShadowRoot.innerHTML = '<div style="background:#182f42;border-radius:24px;padding:40px;text-align:center;color:#f87171;font-family:sans-serif;">Couldn\'t load this — try again.</div>';
+    }
+  }
+
+  function closeOverlay() {
+    const backdrop = document.getElementById('overlay-backdrop');
+    backdrop.classList.remove('show');
+    document.body.style.overflow = '';
+    window.__rinksideOverlayMode = false;
+    if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+    if (history.state && history.state.overlay) history.back();
+  }
+
+  window.addEventListener('popstate', () => {
+    if (!(history.state && history.state.overlay)) {
+      const backdrop = document.getElementById('overlay-backdrop');
+      if (backdrop.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        window.__rinksideOverlayMode = false;
+        if (overlayShadowRoot) overlayShadowRoot.innerHTML = '';
+      }
+    }
+  });
+
+  // Reads the id/name straight off the card the Stats button lives inside, rather than off
+  // activeDepCard — the Stats button's own click handler calls stopPropagation(), so the card's
+  // click-to-manage handler (which sets activeDepCard) never runs for this tap.
+  function openPlayerStats(btn) {
+    const card = btn.closest('.kid-card');
+    if (!card) return;
+    const id = encodeURIComponent(card.dataset.playerId || '');
+    const name = encodeURIComponent(card.dataset.name || '');
+    openOverlay(`rinkside-player-stats.html?id=${id}&name=${name}`);
+  }
+
+  // Account holder's own lifelong stats — same overlay/page as the kid-cards, seeded id.
+  function openMyStats() {
+    openOverlay('rinkside-player-stats.html?id=jordanrivera&name=Jordan%20Rivera');
+  }
+
+  // The career-overview row is a real <a href="rinkside-player-stats.html?..."> now, not just a
+  // button — under file:// (no server) the fetch-based overlay can't load anything, so this lets
+  // the link navigate for real in that case instead of silently doing nothing. Under a real
+  // server, it opens as an overlay for the nicer no-reload experience instead.
+  function handleMyStatsClick(e) {
+    if (window.location.protocol === 'file:') return true; // let the real href navigate
+    e.preventDefault();
+    openMyStats();
+    return false;
+  }
+
+  // ── Career overview row (Sep 2026) — the profile hero's stat row now shows lifelong career
+  // totals instead of account metadata, and doubles as the tap target for the stats overlay.
+  // Career totals here are the exact same numbers seeded for jordanrivera in
+  // rinkside-player-stats.html (kept in sync manually since this is a static prototype, not a
+  // shared data layer yet — a real backend would compute both from one source). Position drives
+  // which four fields show, same skater/goalie split the user asked for on the kid-cards' stats
+  // page: skaters get GP/G/A/PTS, goalies get GP/W/SV%/GAA. ──
+  var MY_CAREER = {
+    position: 'skater', // 'skater' | 'goalie'
+    skater: { gp: 83, g: 60, a: 64, p: 124 },
+    goalie: { gp: 0, w: 0, svp: '.000', gaa: '0.00' } // not this account — wired for real, unseeded
+  };
+
+  function renderCareerOverview() {
+    const fields = MY_CAREER.position === 'goalie'
+      ? [ ['gp', 'GP'], ['w', 'W'], ['svp', 'SV%'], ['gaa', 'GAA'] ]
+      : [ ['gp', 'GP'], ['g', 'G'], ['a', 'A'], ['p', 'PTS'] ];
+    const stats = MY_CAREER[MY_CAREER.position];
+    fields.forEach(([key, label], i) => {
+      const cell = document.getElementById(`career-stat-${i + 1}`);
+      cell.querySelector('.profile-stat-val').textContent = stats[key];
+      cell.querySelector('.profile-stat-label').textContent = label;
+    });
+  }
+  renderCareerOverview();
 
   // ── Real inline editing for Profile Info fields. Account Info fields (password, payment,
   // auto-pay, subscription) deliberately keep their existing "Change"/"Manage" pattern instead —
@@ -1027,7 +1207,11 @@
     card.dataset.username = document.getElementById('dep-add-username').value.trim();
     const initials = (first[0] + (last[0] || '')).toUpperCase();
     const ageLabel = ageAtCreation !== '' ? `Age ${ageAtCreation}` : 'New profile';
-    card.innerHTML = `<div class="kid-card-left"><div class="kid-avatar">${initials}</div><div><div class="kid-name">${first} ${last}</div><div class="kid-age">${ageLabel}</div></div></div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg>`;
+    // Lifelong stats link (Sep 2026): a newly-added dependent has no seasons on record yet, so
+    // this id just needs to be stable, not resolve to real seeded data — the stats overlay shows
+    // an empty state for any id it doesn't recognize rather than erroring.
+    card.dataset.playerId = `new-${(first + last).toLowerCase().replace(/[^a-z]/g, '')}-${Date.now()}`;
+    card.innerHTML = `<div class="kid-card-left"><div class="kid-avatar">${initials}</div><div><div class="kid-name">${first} ${last}</div><div class="kid-age">${ageLabel}</div></div></div><div class="kid-card-right"><button class="kid-stats-btn" type="button" aria-label="View ${first} ${last}'s lifelong stats" onclick="event.stopPropagation(); openPlayerStats(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats</button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim)"><polyline points="9 18 15 12 9 6"/></svg></div>`;
     card.addEventListener('click', () => {
       document.getElementById('dep-add-panel').classList.remove('show');
       activeDepCard = card;

@@ -57,6 +57,16 @@
   .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); padding: 0 20px; margin-bottom: 10px; }
 
   .hero-card { margin: 0 20px 20px; background: linear-gradient(135deg, #0e2a3e, #16384f); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 18px; cursor: pointer; position: relative; overflow: hidden; }
+
+  /* ── Map placeholder (Aug 2026) — real Google Maps integration needs an API key not yet
+     provisioned. Styled as an intentional "coming soon" state, not a broken/empty box. ── */
+  .map-placeholder { margin: 16px 20px 20px; height: 160px; border-radius: var(--radius); border: 1px solid var(--border-mid); position: relative; overflow: hidden; background: linear-gradient(135deg, #0e1f2e, #12293b); }
+  .map-placeholder-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(56,189,248,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.08) 1px, transparent 1px); background-size: 28px 28px; }
+  .map-placeholder-pin { position: absolute; font-size: 20px; opacity: 0.55; filter: grayscale(0.3); }
+  .map-pin-1 { top: 28%; left: 22%; }
+  .map-pin-2 { top: 55%; left: 58%; }
+  .map-pin-3 { top: 35%; left: 78%; }
+  .map-placeholder-label { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600; color: var(--text-dim); background: rgba(11,24,36,0.7); padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
   .hero-card::after { content: ''; position: absolute; top: -30px; right: -30px; width: 130px; height: 130px; background: radial-gradient(circle, rgba(56,189,248,0.1), transparent 70%); pointer-events: none; }
   .hero-eyebrow { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
   .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s infinite; }
@@ -272,6 +282,16 @@
 
   <!-- ── RINKS VIEW ── -->
   <section class="view-panel" id="panel-rinks">
+    <!-- Real placeholder, Aug 2026 — needs a Google Maps API key to actually render pins/tiles.
+         Built to look intentional, not broken, so it reads as "coming soon" rather than an error. -->
+    <div class="map-placeholder" id="rinks-map-placeholder">
+      <div class="map-placeholder-grid"></div>
+      <div class="map-placeholder-pin map-pin-1">📍</div>
+      <div class="map-placeholder-pin map-pin-2">📍</div>
+      <div class="map-placeholder-pin map-pin-3">📍</div>
+      <div class="map-placeholder-label">Map view — coming soon</div>
+    </div>
+
     <h2 class="section-label">Closest to you</h2>
     <div class="hero-card" tabindex="0" onclick="window.location.href='rinkside-rink-profile.html'">
       <div class="hero-eyebrow"><span class="live-dot"></span> 0.4 mi away</div>
